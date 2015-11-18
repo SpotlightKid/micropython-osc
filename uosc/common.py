@@ -100,12 +100,14 @@ def create_message(address, *args):
     a ``(typetag, data)`` tuple, where ``data`` must be of the appropriate type
     according to the following table:
 
-    * m: tuple, list of 4 ints or bytes, bytearray of length 4.
+    * c: ``str`` of length 1
+    * h: ``int``
+    * d: ``float``
+    * I: ``None`` (unused)
+    * m: ``tuple / list`` of 4 ``int``s or ``bytes / bytearray`` of length 4
     * r: same as 'm'
-    * t: OSC timetag as as int/float seconds since the NTP epoch
-    * S: string
-    * h: integer
-    * d: float
+    * t: OSC timetag as as ``int / float`` seconds since the NTP epoch
+    * S: ``str``
 
     """
     data = []
@@ -124,10 +126,12 @@ def create_message(address, *args):
             data.append(pack_string(arg))
         elif typetag in 'brm':
             data.append(pack_blob(arg))
+        elif typetag == 'c':
+            data.append(pack('>I', ord(arg)))
         elif typetag == 't':
             data.append(pack_timetag(arg))
-        elif type_ is None:
-            raise TypeError("Argument of type '%s' not supported" % type_)
+        elif typetag not in 'IFNT':
+            raise TypeError("Argument of type '%s' not supported." % type_)
 
         types.append(typetag)
 
