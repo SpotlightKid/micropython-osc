@@ -12,10 +12,16 @@ class Client:
         self.dest = socket.getaddrinfo(*dest)[0][4]
         self.sock = None
 
-    def send(self, address, *args):
+    def send(self, address, *args, **kw):
+        dest = kw.get('dest', self.dest)
+
+        if isinstance(dest, tuple):
+            dest = socket.getaddrinfo(*dest)[0][4]
+
         if not self.sock:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.sendto(create_message(address, *args), self.dest)
+
+        self.sock.sendto(create_message(address, *args), dest)
 
     def __del__(self):
         if self.sock:
