@@ -4,7 +4,8 @@ from .common import create_message
 
 
 def send(dest, address, *args):
-    Client(dest).send(address, *args)
+    with Client(dest) as client:
+        client.send(address, *args)
 
 
 class Client:
@@ -23,6 +24,13 @@ class Client:
 
         self.sock.sendto(create_message(address, *args), dest)
 
-    def __del__(self):
+    def close(self):
         if self.sock:
             self.sock.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
