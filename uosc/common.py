@@ -68,8 +68,10 @@ def pack_timetag(t):
 
 def pack_string(s):
     """Pack a string into a binary OSC string."""
-    s = bytes(s, 'ascii')
-    return s + b'\0' * (len(s) % 4)
+    s = s.encode('ascii', 'strict') + b'\0'
+    if len(s) % 4:
+        s += b'\0' * (4 - len(s) % 4)
+    return s
 
 
 def pack_blob(b):
@@ -77,7 +79,9 @@ def pack_blob(b):
     if isinstance(b, (tuple, list)):
         b = bytearray(b)
     b = bytes(pack('>I', len(b)) + b)
-    return b + b'\0' * (len(b) % 4)
+    if len(b) % 4:
+        b += b'\0' * (4 - len(b) % 4)
+    return b
 
 
 def create_message(address, *args):
@@ -112,6 +116,7 @@ def create_message(address, *args):
     """
     data = []
     types = [',']
+
     for arg in args:
         type_ = type(arg)
 
@@ -135,5 +140,4 @@ def create_message(address, *args):
 
         types.append(typetag)
 
-    msg = pack_string(address) + pack_string(''.join(types)) + b''.join(data)
-    return msg + b'\0' * (len(msg) % 4)
+    return pack_string(address) + pack_string(''.join(types)) + b''.join(data)
