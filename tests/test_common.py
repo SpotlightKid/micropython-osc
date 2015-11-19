@@ -10,8 +10,8 @@ class TestCreateMessage(unittest.TestCase):
     def assertMessage(self, expected, *args):
         self.assertEqual(create_message(*args), expected)
 
-    def assertTypeError(self, *args):
-        self.assertRaises(TypeError, create_message, *args)
+    def assertError(self, exc, *args):
+        self.assertRaises(exc, create_message, *args)
 
     def test_create_message_int(self):
         self.assertMessage(b'/i\0\0,i\0\0\0\0\0*', '/i', 42)
@@ -20,7 +20,7 @@ class TestCreateMessage(unittest.TestCase):
         self.assertMessage(b'/i\0\0,i\0\0\0\0\0*', '/i', ('i', 42))
 
     def test_create_message_int_fromfloat(self):
-        self.assertTypeError('/i', ('i', 42.0))
+        self.assertError(TypeError, '/i', ('i', 42.0))
 
     def test_create_message_float(self):
         self.assertMessage(b'/f\0\0,f\0\0B(\0\0', '/f', 42.0)
@@ -38,8 +38,7 @@ class TestCreateMessage(unittest.TestCase):
         self.assertMessage(b'/s\0\0,s\0\0spamm\0\0\0', '/s', ('s', 'spamm'))
 
     def test_create_message_str_nonascii(self):
-        # XXX: should really fail
-        self.assertMessage(b'/s\0\0,s\0\0m\xc3\xbcsic\0\0', '/s', 'müsic')
+        self.assertError(AssertionError, '/s', 'müsic')
 
     def test_create_message_blob(self):
         self.assertMessage(b'/b\0\0,b\0\0\0\0\0\x04\xDE\xAD\xBE\xEF',
@@ -69,6 +68,9 @@ class TestCreateMessage(unittest.TestCase):
 
     def test_create_message_false_fromtag(self):
         self.assertMessage(b'/false\0\0,F\0\0', '/false', ('F', 'dummy'))
+
+    def test_create_message_bigint(self):
+        self.assertMessage(b'/h\0\0,h\0\0\0\0\0\0\0\0\0*', '/h', ('h', 42))
 
 
 if __name__ == '__main__':

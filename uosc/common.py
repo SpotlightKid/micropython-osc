@@ -70,6 +70,8 @@ def pack_string(s):
     """Pack a string into a binary OSC string."""
     s = s.encode('ascii', 'strict') + b'\0'
 
+    assert all(i < 128 for i in s), "OSC strings may only contain ASCII chars."
+
     if len(s) % 4:
         s += b'\0' * (4 - len(s) % 4)
 
@@ -121,6 +123,8 @@ def create_message(address, *args):
     * S: ``str``
 
     """
+    assert address.startswith('/'), "Address pattern must start with a slash."
+
     data = []
     types = [',']
 
@@ -132,7 +136,7 @@ def create_message(address, *args):
         else:
             typetag = TYPE_MAP.get(type_) or TYPE_MAP.get(arg)
 
-        if typetag in 'ihfd':
+        if typetag in 'ifd':
             data.append(pack('>' + typetag, arg))
         elif typetag in 'sS':
             data.append(pack_string(arg))
@@ -140,6 +144,8 @@ def create_message(address, *args):
             data.append(pack_blob(arg))
         elif typetag == 'c':
             data.append(pack('>I', ord(arg)))
+        elif typetag == 'h':
+            data.append(pack('>q', arg))
         elif typetag == 't':
             data.append(pack_timetag(arg))
         elif typetag not in 'IFNT':
