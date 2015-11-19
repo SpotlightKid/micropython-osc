@@ -69,18 +69,25 @@ def pack_timetag(t):
 def pack_string(s):
     """Pack a string into a binary OSC string."""
     s = s.encode('ascii', 'strict') + b'\0'
+
     if len(s) % 4:
         s += b'\0' * (4 - len(s) % 4)
+
     return s
 
 
-def pack_blob(b):
+def pack_blob(b, encoding='utf-8'):
     """Pack a bytes, bytearray or tuple/list of ints into a binary OSC blob."""
     if isinstance(b, (tuple, list)):
         b = bytearray(b)
-    b = bytes(pack('>I', len(b)) + b)
+    elif isinstance(b, str):
+        b = bytes(b, encoding)
+
+    b = pack('>I', len(b)) + b
+
     if len(b) % 4:
         b += b'\0' * (4 - len(b) % 4)
+
     return b
 
 
