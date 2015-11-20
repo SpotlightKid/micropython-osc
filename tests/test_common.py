@@ -72,6 +72,12 @@ class TestCreateMessage(unittest.TestCase):
     def test_create_message_bigint(self):
         self.assertMessage(b'/h\0\0,h\0\0\0\0\0\0\0\0\0*', '/h', ('h', 42))
 
+    def test_create_message_double(self):
+        self.assertMessage(b'/d\0\0,d\0\0@E\0\0\0\0\0\0', '/d', ('d', 42.0))
+
+    def test_create_message_symbol(self):
+        self.assertMessage(b'/S\0\0,S\0\0SPAMM\0\0\0', '/S', ('S', 'SPAMM'))
+
 
 if __name__ == '__main__':
     unittest.main()
