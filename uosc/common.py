@@ -207,9 +207,12 @@ def parse_message(msg):
         elif typetag in 'sS':
             s, ofs = split_oscstr(msg, ofs)
             args.append(s)
-        elif typetag in 'brm':
+        elif typetag == 'b':
             s, ofs = split_oscblob(msg, ofs)
             args.append(s)
+        elif typetag in 'rm':
+            size = 4
+            args.append(unpack('BBBB', msg[ofs:ofs+size]))
         elif typetag == 'c':
             size = 4
             args.append(chr(unpack('>I', msg[ofs:ofs+size])[0]))

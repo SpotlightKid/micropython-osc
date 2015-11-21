@@ -92,6 +92,10 @@ class TestCreateMessage(unittest.TestCase):
         self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
                           ('m', (0, 0xB0, 32, 0)))
 
+    def test_create_message_midi_fromtuple(self):
+        self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
+                          ('m', [0, 0xB0, 32, 0]))
+
     def test_create_message_midi_frombytearray(self):
         self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
                           ('m', bytearray([0, 0xB0, 32, 0])))
@@ -104,8 +108,12 @@ class TestCreateMessage(unittest.TestCase):
         self.assertMessage(b'/rgba\0\0\0,r\0\0\x80\x20\x20\xFF', '/rgba',
                           ('r', (128, 32, 32, 255)))
 
-    def test_create_message_rgba_frombytearray(self):
+    def test_create_message_rgba_fromlist(self):
         self.assertMessage(b'/rgba\0\0\0,r\0\0\x80\x20\x20\xFF', '/rgba',
+                          ('r', [128, 32, 32, 255]))
+
+    def test_create_message_rgba_frombytearray(self):
+        self.assertMessage(b'/rgba\0\0\0,r\0\0\x80  \xFF', '/rgba',
                           ('r', bytearray([128, 32, 32, 255])))
 
 
@@ -161,6 +169,14 @@ class TestParseMessage(unittest.TestCase):
 
     def test_parse_message_none(self):
         self.assertMessage(('/N', 'N', (None,)), b'/N\0\0,N\0\0')
+
+    def test_parse_message_midi(self):
+        self.assertMessage(('/midi', 'm', ((0, 0xB0, 32, 0),)),
+                           b'/midi\0\0\0,m\0\0\0\xB0 \0')
+
+    def test_parse_message_rgba(self):
+        self.assertMessage(('/rgba', 'r', ((128, 32, 32, 255),)),
+                           b'/rgba\0\0\0,r\0\0\x80  \xFF')
 
 
 if __name__ == '__main__':
