@@ -27,14 +27,11 @@ def pack_timetag(t):
 
 def pack_string(s):
     """Pack a string into a binary OSC string."""
-    s = s.encode('ascii', 'strict') + b'\0'
-
+    s = s.encode('ascii', 'strict')
     assert all(i < 128 for i in s), "OSC strings may only contain ASCII chars."
 
-    if len(s) % 4:
-        s += b'\0' * (4 - len(s) % 4)
-
-    return s
+    slen = len(s)
+    return s + b'\0' * (((slen + 4) & ~0x03) - slen)
 
 
 def pack_blob(b, encoding='utf-8'):
@@ -44,12 +41,9 @@ def pack_blob(b, encoding='utf-8'):
     elif isinstance(b, str):
         b = bytes(b, encoding)
 
-    b = pack('>I', len(b)) + b
-
-    if len(b) % 4:
-        b += b'\0' * (4 - len(b) % 4)
-
-    return b
+    blen = len(b)
+    b = pack('>I', blen) + b
+    return b + b'\0' * (((blen + 3) & ~0x03) - blen)
 
 
 def create_message(address, *args):
