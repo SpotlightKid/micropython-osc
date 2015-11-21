@@ -183,8 +183,8 @@ def parse_message(msg):
     tags, ofs = split_oscstr(msg, ofs)
     assert tags.startswith(','), "OSC type tag string must start with a comma."
     tags = tags[1:]
+    args = []
 
-    args = [addr, tags]
     for typetag in tags:
         size = 0
 
@@ -213,4 +213,5 @@ def parse_message(msg):
 
         ofs += size
 
-    return tuple(args)
+    return (addr, tags, tuple(args))
+
