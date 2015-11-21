@@ -1,5 +1,5 @@
 from utime import time
-from ustruct import pack
+from ustruct import pack, unpack
 
 
 # UNIX_EPOCH = datetime.date(*time.gmtime(0)[0:3])
@@ -17,6 +17,11 @@ TYPE_MAP = {
     False: 'F',
     None: 'N',
 }
+
+
+
+class Impulse:
+    pass
 
 
 class Bundle(list):
@@ -154,3 +159,58 @@ def create_message(address, *args):
         types.append(typetag)
 
     return pack_string(address) + pack_string(''.join(types)) + b''.join(data)
+
+
+def split_oscstr(msg, offset):
+    end = msg.find(b'\0', offset)
+    return msg[offset:end].decode('ascii'), (end + 4) & ~0x03
+
+
+def split_oscblob(msg, offset):
+    start = offset + 4
+    size = unpack('>I', msg[offset:start])[0]
+    return msg[start:start+size], (start + size + 4) & ~0x03
+
+
+def parse_timetag(msg, offset):
+    """Parse an OSC timetag from msg at offset."""
+    return to_time(unpack('>II', msg[offset:offset+4]))
+
+
+def parse_message(msg):
+    addr, ofs = split_oscstr(msg, 0)
+    assert addr.startswith('/'), "OSC address pattern must start with a slash."
+    tags, ofs = split_oscstr(msg, ofs)
+    assert tags.startswith(','), "OSC type tag string must start with a comma."
+    tags = tags[1:]
+
+    args = [addr, tags]
+    for typetag in tags:
+        size = 0
+
+        if typetag in 'ifd':
+            size = 8 if typetag == 'd' else 4
+            args.append(unpack('>' + typetag, msg[ofs:ofs+size])[0])
+        elif typetag in 'sS':
+            s, ofs = split_oscstr(msg, ofs)
+            args.append(s)
+        elif typetag in 'brm':
+            s, ofs = split_oscblob(msg, ofs)
+            args.append(s)
+        elif typetag == 'c':
+            size = 4
+            args.append(chr(unpack('>I', msg[ofs:ofs+size])[0]))
+        elif typetag == 'h':
+            size = 8
+            args.append(pack('>q', msg[ofs:ofs+size])[0])
+        elif typetag == 't':
+            size = 8
+            args.append(parse_timetag(msg, offset))
+        elif typetag in 'TFNI':
+            args.append({'T': True, 'F': False, 'I': Impulse}.get(typetag))
+        else:
+            raise ValueError("Type tag '%s' not supported." % typetag)
+
+        ofs += size
+
+    return tuple(args)
