@@ -84,6 +84,30 @@ class TestCreateMessage(unittest.TestCase):
     def test_create_message_symbol(self):
         self.assertMessage(b'/S\0\0,S\0\0SPAMM\0\0\0', '/S', ('S', 'SPAMM'))
 
+    def test_create_message_midi(self):
+        self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
+                          ('m', b'\0\xB0\x20\0'))
+
+    def test_create_message_midi_fromtuple(self):
+        self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
+                          ('m', (0, 0xB0, 32, 0)))
+
+    def test_create_message_midi_frombytearray(self):
+        self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
+                          ('m', bytearray([0, 0xB0, 32, 0])))
+
+    def test_create_message_rgba(self):
+        self.assertMessage(b'/rgba\0\0\0,r\0\0\x80\x20\x20\xFF', '/rgba',
+                          ('r', b'\x80\x20\x20\xFF'))
+
+    def test_create_message_rgba_fromtuple(self):
+        self.assertMessage(b'/rgba\0\0\0,r\0\0\x80\x20\x20\xFF', '/rgba',
+                          ('r', (128, 32, 32, 255)))
+
+    def test_create_message_rgba_frombytearray(self):
+        self.assertMessage(b'/rgba\0\0\0,r\0\0\x80\x20\x20\xFF', '/rgba',
+                          ('r', bytearray([128, 32, 32, 255])))
+
 
 class TestParseMessage(unittest.TestCase):
     def assertMessage(self, expected, *args):

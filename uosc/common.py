@@ -156,8 +156,10 @@ def create_message(address, *args):
             data.append(pack('>' + typetag, arg))
         elif typetag in 'sS':
             data.append(pack_string(arg))
-        elif typetag in 'brm':
+        elif typetag == 'b':
             data.append(pack_blob(arg))
+        elif typetag in 'rm':
+            data.append(pack('BBBB', *tuple(arg)))
         elif typetag == 'c':
             data.append(pack('>I', ord(arg)))
         elif typetag == 'h':
