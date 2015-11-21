@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""OSC message parsing and building functions."""
+
 try:
     from time import time
 except ImportError:

@@ -1,6 +1,9 @@
-import usocket as socket
+# -*- coding: utf-8 -*-
+"""Simple OSC client."""
 
-from .common import create_message
+import socket
+
+from uosc.common import create_message
 
 
 def send(dest, address, *args):
