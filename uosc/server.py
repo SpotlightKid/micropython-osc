@@ -8,12 +8,72 @@
 import logging
 import socket
 
-from uosc.common import parse_message
+from struct import unpack
+
+from uosc.common import Impulse, to_time
 from uosc.socketutil import get_hostport
 
 
 log = logging.getLogger("uosc.server")
 MAX_DGRAM_SIZE = 1472
+
+
+def split_oscstr(msg, offset):
+    end = msg.find(b'\0', offset)
+    return msg[offset:end].decode('ascii'), (end + 4) & ~0x03
+
+
+def split_oscblob(msg, offset):
+    start = offset + 4
+    size = unpack('>I', msg[offset:start])[0]
+    return msg[start:start+size], (start + size + 4) & ~0x03
+
+
+def parse_timetag(msg, offset):
+    """Parse an OSC timetag from msg at offset."""
+    return to_time(unpack('>II', msg[offset:offset+4]))
+
+
+def parse_message(msg):
+    addr, ofs = split_oscstr(msg, 0)
+    assert addr.startswith('/'), "OSC address pattern must start with a slash."
+    tags, ofs = split_oscstr(msg, ofs)
+    assert tags.startswith(','), "OSC type tag string must start with a comma."
+    tags = tags[1:]
+    args = []
+
+    for typetag in tags:
+        size = 0
+
+        if typetag in 'ifd':
+            size = 8 if typetag == 'd' else 4
+            args.append(unpack('>' + typetag, msg[ofs:ofs+size])[0])
+        elif typetag in 'sS':
+            s, ofs = split_oscstr(msg, ofs)
+            args.append(s)
+        elif typetag == 'b':
+            s, ofs = split_oscblob(msg, ofs)
+            args.append(s)
+        elif typetag in 'rm':
+            size = 4
+            args.append(unpack('BBBB', msg[ofs:ofs+size]))
+        elif typetag == 'c':
+            size = 4
+            args.append(chr(unpack('>I', msg[ofs:ofs+size])[0]))
+        elif typetag == 'h':
+            size = 8
+            args.append(unpack('>q', msg[ofs:ofs+size])[0])
+        elif typetag == 't':
+            size = 8
+            args.append(parse_timetag(msg, offset))
+        elif typetag in 'TFNI':
+            args.append({'T': True, 'F': False, 'I': Impulse}.get(typetag))
+        else:
+            raise ValueError("Type tag '%s' not supported." % typetag)
+
+        ofs += size
+
+    return (addr, tags, tuple(args))
 
 
 def handle_osc(addr, tags, args, src):
