@@ -2,7 +2,7 @@
 
 import unittest
 
-from uosc.server import parse_message
+from uosc.server import Impulse, parse_message
 
 
 class TestParseMessage(unittest.TestCase):
@@ -34,18 +34,6 @@ class TestParseMessage(unittest.TestCase):
         self.assertMessage(('/b', 'b', (b'\xDE\xAD\xBE\xEF',)),
                            b'/b\0\0,b\0\0\0\0\0\x04\xDE\xAD\xBE\xEF')
 
-    def test_parse_message_big(self):
-        addr, tags, args = parse_message(
-            b'/big\0\0\0\0,iisbff\0\0\0\x03\xe8\xff\xff\xff\xffhello'
-            b'\0\0\0\0\0\0\x06\0\x01\x02\x03\x04\x05\0\0'
-            b'?\x9d\xf3\xb6@\xb5\xb2-')
-
-        self.assertEqual(addr, '/big')
-        self.assertEqual(tags, 'iisbff')
-        self.assertEqual((1000, -1, 'hello', bytes(range(6))), args[:-2])
-        self.assertAlmostEqual(args[-2], 1.234)
-        self.assertAlmostEqual(args[-1], 5.678)
-
     def test_parse_message_double(self):
         self.assertMessage(('/d', 'd', (42.0,)), b'/d\0\0,d\0\0@E\0\0\0\0\0\0')
 
@@ -58,6 +46,9 @@ class TestParseMessage(unittest.TestCase):
     def test_parse_message_none(self):
         self.assertMessage(('/N', 'N', (None,)), b'/N\0\0,N\0\0')
 
+    def test_parse_message_impulse(self):
+        self.assertMessage(('/I', 'I', (Impulse,)), b'/I\0\0,I\0\0')
+
     def test_parse_message_midi(self):
         self.assertMessage(('/midi', 'm', ((0, 0xB0, 32, 0),)),
                            b'/midi\0\0\0,m\0\0\0\xB0 \0')
@@ -65,6 +56,27 @@ class TestParseMessage(unittest.TestCase):
     def test_parse_message_rgba(self):
         self.assertMessage(('/rgba', 'r', ((128, 32, 32, 255),)),
                            b'/rgba\0\0\0,r\0\0\x80  \xFF')
+
+    def test_parse_message_symbol(self):
+        self.assertMessage(('/S', 'S', ('SPAMM',)), b'/S\0\0,S\0\0SPAMM\0\0\0')
+
+    def test_parse_message_char(self):
+        self.assertMessage(('/c', 'c', ('x',)), b'/c\0\0,c\0\0\0\0\0x')
+
+    def test_parse_message_bigint(self):
+        self.assertMessage(('/h', 'h', (42,)), b'/h\0\0,h\0\0\0\0\0\0\0\0\0*')
+
+    def test_parse_message_combi(self):
+        addr, tags, args = parse_message(
+            b'/big\0\0\0\0,iisbff\0\0\0\x03\xe8\xff\xff\xff\xffhello'
+            b'\0\0\0\0\0\0\x06\0\x01\x02\x03\x04\x05\0\0'
+            b'?\x9d\xf3\xb6@\xb5\xb2-')
+
+        self.assertEqual(addr, '/big')
+        self.assertEqual(tags, 'iisbff')
+        self.assertEqual((1000, -1, 'hello', bytes(range(6))), args[:-2])
+        self.assertAlmostEqual(args[-2], 1.234)
+        self.assertAlmostEqual(args[-1], 5.678)
 
 
 if __name__ == '__main__':

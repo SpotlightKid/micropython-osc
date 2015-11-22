@@ -4,6 +4,11 @@ import unittest
 
 from uosc.client import create_message
 
+try:
+    from struct import error as StructError
+except ImportError:
+    StructError = TypeError
+
 
 class TestCreateMessage(unittest.TestCase):
     def assertMessage(self, expected, *args):
@@ -18,6 +23,10 @@ class TestCreateMessage(unittest.TestCase):
     def test_create_message_noargs(self):
         self.assertMessage(b'/nil\0\0\0\0,\0\0\0', '/nil')
 
+    def test_create_message_shortaddress(self):
+        """OSC address ends with zero byte and no further padding"""
+        self.assertMessage(b'/ni\0,\0\0\0', '/ni')
+
     def test_create_message_int(self):
         self.assertMessage(b'/i\0\0,i\0\0\0\0\0*', '/i', 42)
 
@@ -25,7 +34,7 @@ class TestCreateMessage(unittest.TestCase):
         self.assertMessage(b'/i\0\0,i\0\0\0\0\0*', '/i', ('i', 42))
 
     def test_create_message_int_fromfloat(self):
-        self.assertError(TypeError, '/i', ('i', 42.0))
+        self.assertError(StructError, '/i', ('i', 42.0))
 
     def test_create_message_float(self):
         self.assertMessage(b'/f\0\0,f\0\0B(\0\0', '/f', 42.0)
@@ -83,6 +92,9 @@ class TestCreateMessage(unittest.TestCase):
     def test_create_message_symbol(self):
         self.assertMessage(b'/S\0\0,S\0\0SPAMM\0\0\0', '/S', ('S', 'SPAMM'))
 
+    def test_create_message_char(self):
+        self.assertMessage(b'/c\0\0,c\0\0\0\0\0x', '/c', ('c', 'x'))
+
     def test_create_message_midi(self):
         self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
                           ('m', b'\0\xB0\x20\0'))
@@ -114,6 +126,13 @@ class TestCreateMessage(unittest.TestCase):
     def test_create_message_rgba_frombytearray(self):
         self.assertMessage(b'/rgba\0\0\0,r\0\0\x80  \xFF', '/rgba',
                           ('r', bytearray([128, 32, 32, 255])))
+
+    def test_create_message_combi(self):
+        self.assertMessage(
+            b'/big\0\0\0\0,iisbff\0\0\0\x03\xe8\xff\xff\xff\xffhello'
+            b'\0\0\0\0\0\0\x06\0\x01\x02\x03\x04\x05\0\0'
+            b'?\x9d\xf3\xb6@\xb5\xb2-',
+            '/big', 1000, -1, 'hello', bytes(range(6)), 1.234, 5.678)
 
 
 if __name__ == '__main__':
