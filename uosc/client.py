@@ -127,19 +127,21 @@ def create_message(address, *args):
 
 class Client:
     def __init__(self, dest):
-        self.dest = socket.getaddrinfo(*dest)[0][4]
+        self.dest = socket._resolve_addr(dest)
         self.sock = None
 
-    def send(self, address, *args, **kw):
-        dest = kw.get('dest', self.dest)
-
-        if isinstance(dest, tuple):
-            dest = socket.getaddrinfo(*dest)[0][4]
+    def send(self, msg, *args, **kw):
+        dest = socket._resolve_addr(kw.get('dest', self.dest))
 
         if not self.sock:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self.sock.sendto(create_message(address, *args), dest)
+        if isinstance(msg, Bundle):
+            msg = pack_bundle(msg)
+        elif not isinstance(msg, bytes):
+            msg = create_message(msg, *args)
+
+        self.sock.sendto(msg, dest)
 
     def close(self):
         if self.sock:
