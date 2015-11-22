@@ -20,7 +20,7 @@ MAX_DGRAM_SIZE = 1472
 
 def split_oscstr(msg, offset):
     end = msg.find(b'\0', offset)
-    return msg[offset:end].decode('ascii'), (end + 4) & ~0x03
+    return msg[offset:end].decode('utf-8'), (end + 4) & ~0x03
 
 
 def split_oscblob(msg, offset):

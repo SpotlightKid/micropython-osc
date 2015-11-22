@@ -41,19 +41,6 @@ class Bundle(list):
         self.timetag = time() + NTP_EPOCH if timetag is None else timetag
         super(Bundle, self).__init__(msgs)
 
-    def pack(self):
-        """Return bundle data packed into a binary string."""
-        data = []
-        for msg in self:
-            if isinstance(msg, Bundle):
-                msg = Bundle.pack()
-            elif isinstance(msg, tuple):
-                msg = creat_message(*msg)
-
-            data.append(pack('>I', len(msg)) + msg)
-
-        return b'#bundle\0' + pack_timetag(self.timetag) + b''.join(data)
-
 
 def to_frac(t):
     """Return seconds and fractional part of NTP timestamp as 2-item tuple."""
@@ -64,4 +51,3 @@ def to_frac(t):
 def to_time(sec, frac):
     """Return NTP timestamp from integer seconds and fractional part."""
     return sec + float(frac) / ISIZE
-
