@@ -5,7 +5,7 @@ import socket
 
 from struct import pack
 
-from uosc.common import to_frac
+from uosc.common import Bundle, to_frac
 
 
 TYPE_MAP = {
@@ -51,7 +51,7 @@ def pack_bundle(bundle):
     data = []
     for msg in bundle:
         if isinstance(msg, Bundle):
-            msg = Bundle.pack()
+            msg = pack_bundle(msg)
         elif isinstance(msg, tuple):
             msg = create_message(*msg)
 

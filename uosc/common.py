@@ -24,10 +24,10 @@ class Impulse:
     pass
 
 
-class Bundle(list):
-    """Container for an OSC bundle (subclasses list)."""
+class Bundle:
+    """Container for an OSC bundle."""
 
-    def __init__(self, timetag=None, *msgs):
+    def __init__(self, timetag=None, *items):
         """Create bundle from given OSC timetag and messages/sub-bundles.
 
         timetag, if given, must be in float seconds since the NTP epoch
@@ -39,7 +39,13 @@ class Bundle(list):
 
         """
         self.timetag = time() + NTP_EPOCH if timetag is None else timetag
-        super(Bundle, self).__init__(msgs)
+        self._items = list(items)
+
+    def add(self, *items):
+        self._items.extend(list(items))
+
+    def __iter__(self):
+        return iter(self._items)
 
 
 def to_frac(t):

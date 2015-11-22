@@ -2,7 +2,7 @@
 
 import unittest
 
-from uosc.client import create_message
+from uosc.client import Bundle, create_message, pack_bundle
 
 try:
     from struct import error as StructError
@@ -133,6 +133,39 @@ class TestCreateMessage(unittest.TestCase):
             b'\0\0\0\0\0\0\x06\0\x01\x02\x03\x04\x05\0\0'
             b'?\x9d\xf3\xb6@\xb5\xb2-',
             '/big', 1000, -1, 'hello', bytes(range(6)), 1.234, 5.678)
+
+
+class TestBundle(unittest.TestCase):
+    timetag = 3657147741.6552954
+    data1 = (b'#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00\x00\x00\x00\x10'
+        b'/test1\x00\x00,i\x00\x00\x00\x00\x00*\x00\x00\x00\x10'
+        b'/test2\x00\x00,f\x00\x00@I\x06%\x00\x00\x00\x14'
+        b'/test3\x00\x00,s\x00\x00hello\x00\x00\x00')
+    data2 = (b'#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00\x00\x00\x00\x10'
+        b'/test1\x00\x00,i\x00\x00\x00\x00\x00*'
+        b'\x00\x00\x00$#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00'
+        b'\x00\x00\x00\x10/test2\x00\x00,f\x00\x00@I\x06%')
+
+    def test_pack_bundle_fromtuples(self):
+        bundle = Bundle(self.timetag)
+        bundle.add(('/test1', 42))
+        bundle.add(('/test2', 3.141))
+        bundle.add(('/test3', 'hello'))
+        self.assertEqual(pack_bundle(bundle), self.data1)
+
+    def test_pack_bundle_frommessages(self):
+        bundle = Bundle(self.timetag)
+        bundle.add(create_message('/test1', 42))
+        bundle.add(create_message('/test2', 3.141))
+        bundle.add(create_message('/test3', 'hello'))
+        self.assertEqual(pack_bundle(bundle), self.data1)
+
+    def test_pack_bundle_frombundle(self):
+        bundle1 = Bundle(self.timetag)
+        bundle1.add(('/test1', 42))
+        bundle2 = Bundle(self.timetag, ('/test2', 3.141))
+        bundle1.add(bundle2)
+        self.assertEqual(pack_bundle(bundle1), self.data2)
 
 
 if __name__ == '__main__':
