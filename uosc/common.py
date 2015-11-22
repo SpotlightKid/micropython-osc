@@ -38,7 +38,7 @@ class Bundle:
         ``Bundle`` instance or (address, *args) tuples.
 
         """
-        self.timetag = time() + NTP_EPOCH if timetag is None else timetag
+        self.timetag = time() + NTP_DELTA if timetag is None else timetag
         self._items = list(items)
 
     def add(self, *items):

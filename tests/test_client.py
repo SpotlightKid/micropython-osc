@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import time
 import unittest
 
 from uosc.client import Bundle, create_message, pack_bundle
+from uosc.common import NTP_DELTA
 
 try:
     from struct import error as StructError
@@ -145,6 +147,24 @@ class TestBundle(unittest.TestCase):
         b'/test1\x00\x00,i\x00\x00\x00\x00\x00*'
         b'\x00\x00\x00$#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00'
         b'\x00\x00\x00\x10/test2\x00\x00,f\x00\x00@I\x06%')
+
+    def test_create_bundle_withtimetag(self):
+        t = time.time() + NTP_DELTA
+        bundle = Bundle(t)
+        self.assertEqual(bundle.timetag, t)
+        bundle = Bundle(timetag=t)
+        self.assertEqual(bundle.timetag, t)
+        bundle = Bundle(t, ('/test1',))
+        self.assertEqual(bundle.timetag, t)
+
+    def test_create_bundle_notimetag(self):
+        t = time.time() + NTP_DELTA
+        bundle = Bundle()
+        self.assertTrue(bundle.timetag >= t)
+        bundle = Bundle(None)
+        self.assertTrue(bundle.timetag >= t)
+        bundle = Bundle(None, ('/test1',))
+        self.assertTrue(bundle.timetag >= t)
 
     def test_pack_bundle_fromtuples(self):
         bundle = Bundle(self.timetag)
