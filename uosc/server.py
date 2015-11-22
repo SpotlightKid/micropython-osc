@@ -35,12 +35,19 @@ def parse_timetag(msg, offset):
 
 
 def parse_message(msg):
-    addr, ofs = split_oscstr(msg, 0)
-    assert addr.startswith('/'), "OSC address pattern must start with a slash."
-    tags, ofs = split_oscstr(msg, ofs)
-    assert tags.startswith(','), "OSC type tag string must start with a comma."
-    tags = tags[1:]
     args = []
+    addr, ofs = split_oscstr(msg, 0)
+
+    if not addr.startswith('/'):
+        raise ValueError("OSC address pattern must start with a slash.")
+
+    # type tag string must start with comma (ASCII 44)
+    if ofs < len(msg) and msg[ofs] == 44:
+        tags, ofs = split_oscstr(msg, ofs)
+        tags = tags[1:]
+    else:
+        log.warning("Missing/invalid OSC type tag string. Ignoring arguments.")
+        tags = ''
 
     for typetag in tags:
         size = 0

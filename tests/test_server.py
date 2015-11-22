@@ -9,14 +9,28 @@ class TestParseMessage(unittest.TestCase):
     def assertMessage(self, expected, *args):
         self.assertEqual(parse_message(*args), expected)
 
+    def assertError(self, exc, *args):
+        self.assertRaises(exc, parse_message, *args)
+
     def test_parse_address(self):
         self.assertEqual(parse_message(b'/nil\0\0\0\0,\0\0\0')[0], '/nil')
         self.assertEqual(parse_message(b'/*\0\0,\0\0\0')[0], '/*')
+
+    def test_parse_address_invalid(self):
+        self.assertError(ValueError, b'nil\0,\0\0\0')
 
     def test_parse_typetags(self):
         self.assertEqual(parse_message(b'/i\0\0,i\0\0\0\0\0*')[1], 'i')
         self.assertEqual(parse_message(b'/is\0,is\0\0\0\0*foo\0')[1], 'is')
         self.assertEqual(parse_message(b'/nil\0\0\0\0,\0\0\0')[1], '')
+
+    def test_parse_no_typetags(self):
+        _, tags, args = parse_message(b'/nt\0')
+        self.assertEqual(tags, '')
+        self.assertEqual(args, ())
+        _, tags, args = parse_message(b'/nt\0\0\0\0*')
+        self.assertEqual(tags, '')
+        self.assertEqual(args, ())
 
     def test_parse_message_int(self):
         self.assertMessage(('/i', 'i', (42,)), b'/i\0\0,i\0\0\0\0\0*')
