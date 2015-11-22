@@ -152,8 +152,6 @@ class TestBundle(unittest.TestCase):
         t = time.time() + NTP_DELTA
         bundle = Bundle(t)
         self.assertEqual(bundle.timetag, t)
-        bundle = Bundle(timetag=t)
-        self.assertEqual(bundle.timetag, t)
         bundle = Bundle(t, ('/test1',))
         self.assertEqual(bundle.timetag, t)
 
@@ -161,9 +159,7 @@ class TestBundle(unittest.TestCase):
         t = time.time() + NTP_DELTA
         bundle = Bundle()
         self.assertTrue(bundle.timetag >= t)
-        bundle = Bundle(None)
-        self.assertTrue(bundle.timetag >= t)
-        bundle = Bundle(None, ('/test1',))
+        bundle = Bundle(('/test1',))
         self.assertTrue(bundle.timetag >= t)
 
     def test_pack_bundle_fromtuples(self):

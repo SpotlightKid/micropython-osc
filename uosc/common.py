@@ -27,18 +27,24 @@ class Impulse:
 class Bundle:
     """Container for an OSC bundle."""
 
-    def __init__(self, timetag=None, *items):
+    def __init__(self, *items):
         """Create bundle from given OSC timetag and messages/sub-bundles.
 
-        timetag, if given, must be in float seconds since the NTP epoch
-        (1990-01-01 00:00). It defaults to the current time.
+        An OSC timetag can be given as the first positional arguments, and must
+        be an int or float of seconds since the NTP epoch (1990-01-01 00:00).
+        It defaults to the current time.
 
         Pass in messages or bundles via positional arguments as binary data
         (bytes as returned by ``create_message`` resp. ``Bundle.pack``) or as
         ``Bundle`` instance or (address, *args) tuples.
 
         """
-        self.timetag = time() + NTP_DELTA if timetag is None else timetag
+        if items and isinstance(items[0], (int, float)):
+            self.timetag = items[0]
+            items = items[1:]
+        else:
+            self.timetag = time() + NTP_DELTA
+
         self._items = list(items)
 
     def add(self, *items):
