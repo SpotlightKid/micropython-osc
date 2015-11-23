@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 #  uosc/server.py
@@ -81,6 +80,19 @@ def parse_message(msg):
         ofs += size
 
     return (addr, tags, tuple(args))
+
+
+def parse_bundle(bundle):
+    """Parse a binary OSC bundle.
+
+    Returns a generator which walks over all contained messages and bundles
+    recursively, depth-first. Each item yielded is a (timetag, message) tuple.
+
+    """
+    if not bundle.startswith(b'#bundle\0'):
+        raise TypeError("Bundle must start with '#bundle\\0'.")
+
+    yield
 
 
 def handle_osc(addr, tags, args, src):

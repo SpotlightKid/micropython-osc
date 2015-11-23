@@ -2,7 +2,10 @@
 
 import unittest
 
-from uosc.server import Impulse, parse_message
+from uosc.server import Impulse, parse_bundle, parse_message
+
+
+typegen = type((lambda: (yield))())
 
 
 class TestParseMessage(unittest.TestCase):
@@ -91,6 +94,21 @@ class TestParseMessage(unittest.TestCase):
         self.assertEqual((1000, -1, 'hello', bytes(range(6))), args[:-2])
         self.assertAlmostEqual(args[-2], 1.234)
         self.assertAlmostEqual(args[-1], 5.678)
+
+
+class TestParseBundle(unittest.TestCase):
+    data = (b'#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00\x00\x00\x00\x10'
+        b'/test1\x00\x00,i\x00\x00\x00\x00\x00*'
+        b'\x00\x00\x00$#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00'
+        b'\x00\x00\x00\x10/test2\x00\x00,f\x00\x00@I\x06%')
+
+    def test_parse_bundle_nobundle(self):
+        self.assertRaises(TypeError, next, parse_bundle(b''))
+        self.assertRaises(TypeError, next, parse_bundle(b'/test1'))
+
+    def test_parse_bundle_returns_generator(self):
+        biter = parse_bundle(self.data)
+        self.assertTrue(isinstance(biter, typegen))
 
 
 if __name__ == '__main__':
