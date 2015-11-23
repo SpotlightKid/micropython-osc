@@ -25,10 +25,9 @@ def main(args=None):
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     try:
-        run_server(args.address, args.port)
+        run_server(args.address, int(args.port))
     except KeyboardInterrupt:
         pass
-
 
 
 if __name__ == '__main__':
