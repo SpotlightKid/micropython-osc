@@ -134,14 +134,21 @@ def run_server(saddr, port):
             log.debug("RECV %i bytes from %s:%s", len(data), *caddr)
 
             try:
-                oscaddr, tags, args = parse_message(data)
+                head, _ = split_oscstr(data, 0)
+
+                if head.startswith('/'):
+                    messages = [(-1, parse_message(data))]
+                elif head == '#bundle':
+                    messages = parse_bundle(data)
             except:
                 log.debug("Could not parse message from %s:%i.", *caddr)
                 log.debug("Data: %r", data)
                 continue
 
             try:
-                handle_osc(oscaddr, tags, args, caddr)
+                for timetag, (oscaddr, tags, args) in messages:
+                    # XXX: ignore timetags for now
+                    handle_osc(oscaddr, tags, args, caddr)
             except Exception as exc:
                 log.error("Exception in OSC handler: %s", exc)
     finally:
