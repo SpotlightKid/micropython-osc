@@ -92,7 +92,22 @@ def parse_bundle(bundle):
     if not bundle.startswith(b'#bundle\0'):
         raise TypeError("Bundle must start with '#bundle\\0'.")
 
-    yield
+    ofs = 16
+    timetag = to_time(*unpack('>II', bundle[8:ofs]))
+
+    while True:
+        if ofs >= len(bundle):
+            break
+
+        size = unpack('>I', bundle[ofs:ofs+4])[0]
+        element = bundle[ofs+4:ofs+4+size]
+        ofs += size + 4
+
+        if element.startswith('#bundle'):
+            for el in parse_bundle(element):
+                yield el
+        else:
+            yield timetag, parse_message(element)
 
 
 def handle_osc(addr, tags, args, src):

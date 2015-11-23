@@ -97,7 +97,12 @@ class TestParseMessage(unittest.TestCase):
 
 
 class TestParseBundle(unittest.TestCase):
-    data = (b'#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00\x00\x00\x00\x10'
+    timetag = 3657147741.6552954
+    data1 = (b'#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00\x00\x00\x00\x10'
+        b'/test1\x00\x00,i\x00\x00\x00\x00\x00*\x00\x00\x00\x10'
+        b'/test2\x00\x00,f\x00\x00@I\x06%\x00\x00\x00\x14'
+        b'/test3\x00\x00,s\x00\x00hello\x00\x00\x00')
+    data2 = (b'#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00\x00\x00\x00\x10'
         b'/test1\x00\x00,i\x00\x00\x00\x00\x00*'
         b'\x00\x00\x00$#bundle\x00\xd9\xfb\xa5]\xa7\xc1p\x00'
         b'\x00\x00\x00\x10/test2\x00\x00,f\x00\x00@I\x06%')
@@ -107,8 +112,48 @@ class TestParseBundle(unittest.TestCase):
         self.assertRaises(TypeError, next, parse_bundle(b'/test1'))
 
     def test_parse_bundle_returns_generator(self):
-        biter = parse_bundle(self.data)
+        biter = parse_bundle(self.data1)
         self.assertTrue(isinstance(biter, typegen))
+
+    def test_parse_bundle_structure(self):
+        # parsing flat bundle
+        elements = list(parse_bundle(self.data1))
+        self.assertEqual(len(elements), 3)
+        self.assertTrue(isinstance(elements[0], tuple))
+        self.assertEqual(len(elements[0]), 2)
+        self.assertTrue(isinstance(elements[0][0], float))
+        self.assertTrue(isinstance(elements[0][1], tuple))
+        self.assertEqual(len(elements[0][1]), 3)
+        self.assertTrue(isinstance(elements[0][1][2], tuple))
+
+        self.assertEqual(elements[0][0], elements[1][0],
+            "timetag of first and second bundle element differ")
+        self.assertEqual(elements[0][0], elements[2][0],
+            "timetag of first and third bundle element differ")
+
+        # parsing nested bundle
+        elements = list(parse_bundle(self.data2))
+        self.assertEqual(len(elements), 2)
+        self.assertTrue(isinstance(elements[0], tuple))
+        self.assertEqual(len(elements[0]), 2)
+        self.assertTrue(isinstance(elements[0][0], float))
+        self.assertTrue(isinstance(elements[0][1], tuple))
+        self.assertEqual(len(elements[0][1]), 3)
+        self.assertTrue(isinstance(elements[0][1][2], tuple))
+
+        self.assertEqual(elements[0][0], elements[1][0],
+            "timetag of first element and element from nested bundle differ")
+
+    def test_parse_bundle_elements(self):
+        # parsing flat bundle
+        elements = list(parse_bundle(self.data1))
+        self.assertEqual(elements[0][0], self.timetag)
+        self.assertEqual(elements[0][1], ('/test1', 'i', (42,)))
+        self.assertEqual(elements[1][0], self.timetag)
+        self.assertEqual(elements[1][1][:2], ('/test2', 'f'))
+        self.assertEqual(elements[2][0], self.timetag)
+        self.assertAlmostEqual(elements[1][1][2][0], 3.141)
+        self.assertEqual(elements[2][1], ('/test3', 's', ('hello',)))
 
 
 if __name__ == '__main__':
