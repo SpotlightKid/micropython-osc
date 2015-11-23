@@ -111,27 +111,30 @@ def parse_bundle(bundle):
 
 
 def handle_osc(addr, tags, args, src):
-    log.debug("OSC address: %s" % addr)
-    log.debug("OSC type tags: %r" % tags)
-    log.debug("OSC arguments: %r" % (args,))
+    if __debug__:
+        log.debug("OSC address: %s" % addr)
+        log.debug("OSC type tags: %r" % tags)
+        log.debug("OSC arguments: %r" % (args,))
     pass
 
 
 def run_server(saddr, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    log.debug("Created OSC UDP server socket.")
+    if __debug__: log.debug("Created OSC UDP server socket.")
+
     sock.bind((saddr, port))
-    log.debug("Bound socket to port %i on %s.", port, saddr)
+    log.info("Listening for OSC messages on %s:%i.", saddr, port)
 
     try:
-        log.debug("Entering receive loop...")
+
         while True:
             data, caddr = sock.recvfrom(MAX_DGRAM_SIZE)
 
             if isinstance(caddr, bytes):
                 caddr = get_hostport(caddr)
 
-            log.debug("RECV %i bytes from %s:%s", len(data), *caddr)
+            if __debug__:
+                log.debug("RECV %i bytes from %s:%s", len(data), *caddr)
 
             try:
                 head, _ = split_oscstr(data, 0)
@@ -141,8 +144,9 @@ def run_server(saddr, port):
                 elif head == '#bundle':
                     messages = parse_bundle(data)
             except:
-                log.debug("Could not parse message from %s:%i.", *caddr)
-                log.debug("Data: %r", data)
+                if __debug__:
+                    log.debug("Could not parse message from %s:%i.", *caddr)
+                    log.debug("Data: %r", data)
                 continue
 
             try:
