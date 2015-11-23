@@ -8,7 +8,7 @@ import sys
 from uosc.server import run_server
 
 
-DEFAULT_HOST = '0.0.0.0'
+DEFAULT_ADDRESS = '0.0.0.0'
 DEFAULT_PORT = 9000
 
 
@@ -16,10 +16,10 @@ def main(args=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-v', '--verbose', action="store_true",
                     help="Enable debug logging")
-    ap.add_argument('-a', '--address', default=DEFAULT_HOST,
-                    help="UDP server address (default: %s)" % DEFAULT_HOST)
+    ap.add_argument('-a', '--address', default=DEFAULT_ADDRESS,
+                    help="OSC server address (default: %s)" % DEFAULT_ADDRESS)
     ap.add_argument('-p', '--port', type=int, default=DEFAULT_PORT,
-                    help="UDP server port (default: %s)" % DEFAULT_PORT)
+                    help="OSC server port (default: %s)" % DEFAULT_PORT)
 
     args = ap.parse_args(args if args is not None else sys.argv[1:])
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
