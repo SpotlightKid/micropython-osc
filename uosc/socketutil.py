@@ -19,5 +19,8 @@ if not inet_ntop:
         return res
 
 def get_hostport(addr):
+    if isinstance(addr, tuple):
+        return addr
+
     af, addr, port = socket.sockaddr(addr)
     return inet_ntop(af, addr), port
