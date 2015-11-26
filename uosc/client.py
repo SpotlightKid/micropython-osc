@@ -20,6 +20,14 @@ TYPE_MAP = {
 }
 
 
+if isinstance('', bytes):
+    have_bytes = False
+    unicodetype = unicode
+else:
+    have_bytes = True
+    unicodetype = str
+
+
 def pack_timetag(t):
     """Pack an OSC timetag into 64-bit binary blob."""
     return pack('>II', *to_frac(t))
@@ -28,7 +36,8 @@ def pack_timetag(t):
 def pack_string(s):
     """Pack a string into a binary OSC string."""
     s = s.encode('utf-8')
-    assert all(i < 128 for i in s), "OSC strings may only contain ASCII chars."
+    assert all((i if have_bytes else ord(i)) < 128 for i in s), (
+           "OSC strings may only contain ASCII chars.")
 
     slen = len(s)
     return s + b'\0' * (((slen + 4) & ~0x03) - slen)
@@ -138,7 +147,7 @@ class Client:
 
         if isinstance(msg, Bundle):
             msg = pack_bundle(msg)
-        elif not isinstance(msg, bytes):
+        elif args or isinstance(msg, unicodetype):
             msg = create_message(msg, *args)
 
         self.sock.sendto(msg, dest)
