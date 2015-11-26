@@ -9,7 +9,7 @@ from uosc.server import run_server
 
 
 DEFAULT_ADDRESS = '0.0.0.0'
-DEFAULT_PORT = 9000
+DEFAULT_PORT = 9001
 
 
 def main(args=None):
