@@ -6,6 +6,7 @@ import socket
 from struct import pack
 
 from uosc.common import Bundle, to_frac
+from uosc.socketutil import pack_addr
 
 
 TYPE_MAP = {
@@ -135,12 +136,19 @@ def create_message(address, *args):
 
 
 class Client:
-    def __init__(self, dest):
-        self.dest = socket._resolve_addr(dest)
+    def __init__(self, host, port=None):
+        if port is None:
+            if isinstance(host, (list, tuple)):
+                host, port = host
+            else:
+                port = host
+                host = '127.0.0.1'
+
+        self.dest = pack_addr((host, port))
         self.sock = None
 
     def send(self, msg, *args, **kw):
-        dest = socket._resolve_addr(kw.get('dest', self.dest))
+        dest = pack_addr(kw.get('dest', self.dest))
 
         if not self.sock:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -155,6 +163,7 @@ class Client:
     def close(self):
         if self.sock:
             self.sock.close()
+            self.sock = None
 
     def __enter__(self):
         return self
