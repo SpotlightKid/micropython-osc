@@ -150,7 +150,6 @@ def run_server(saddr, port, handler=handle_osc):
     log.info("Listening for OSC messages on %s:%i.", saddr, port)
 
     try:
-
         while True:
             data, caddr = sock.recvfrom(MAX_DGRAM_SIZE)
             if __debug__: log.debug("RECV %i bytes from %s:%s",
