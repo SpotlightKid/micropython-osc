@@ -1,5 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Run an OSC server with asynchroneous I/O handling via the uasync framwork.
+"""
+
+import sys
 import logging
 import socket
+
 from uasyncio.core import *
 
 from uosc.socketutil import get_hostport
@@ -32,15 +39,40 @@ def run_server(host, port, client_coro, **params):
 
 @coroutine
 def serve(data, caddr, **params):
+    if __debug__: log.debug("Client request handler coroutine called.")
     handle_osc(data, caddr, **params)
-    if __debug__: log.debug("Finished processing request")
+    # simulate long running request handler
+    yield from sleep(1)
+    if __debug__: log.debug("Finished processing request,")
 
-def printer(t, msg):
-    print(t, msg)
+
+class Counter:
+    def __init__(self):
+        self.count = 0
+
+    def __call__(self, t, msg):
+        self.count += 1
+        print("OSC message from: udp://%s:%s" % get_hostport(msg[3]))
+        print("OSC address:", msg[0])
+        print("Type tags:", msg[1])
+        print("Arguments:", msg[2])
+        print()
 
 
-logging.basicConfig(level=logging.INFO)
-loop = get_event_loop()
-loop.call_soon(run_server("0.0.0.0", 9001, serve, dispatch=printer))
-loop.run_forever()
-loop.close()
+if __name__ == '__main__':
+    import time
+    logging.basicConfig(
+        level=logging.DEBUG if '-v' in sys.argv[1:] else logging.INFO)
+    loop = get_event_loop()
+    counter = Counter()
+    loop.call_soon(run_server("0.0.0.0", 9001, serve, dispatch=counter))
+    if __debug__: log.debug("Starting asyncio event loop")
+    start = time.time()
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.close()
+        reqs = counter.count / (time.time() - start)
+        print("Requests/second: %.2f" % reqs)
