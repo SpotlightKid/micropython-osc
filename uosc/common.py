@@ -30,13 +30,13 @@ class Bundle:
     def __init__(self, *items):
         """Create bundle from given OSC timetag and messages/sub-bundles.
 
-        An OSC timetag can be given as the first positional arguments, and must
+        An OSC timetag can be given as the first positional argument, and must
         be an int or float of seconds since the NTP epoch (1990-01-01 00:00).
         It defaults to the current time.
 
         Pass in messages or bundles via positional arguments as binary data
         (bytes as returned by ``create_message`` resp. ``Bundle.pack``) or as
-        ``Bundle`` instance or (address, *args) tuples.
+        ``Bundle`` instances or (address, *args) tuples.
 
         """
         if items and isinstance(items[0], (int, float)):
