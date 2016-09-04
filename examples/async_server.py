@@ -7,7 +7,7 @@ import sys
 import logging
 import socket
 
-from uasyncio.core import *
+from uasyncio.core import IORead, coroutine, get_event_loop, sleep
 
 from uosc.socketutil import get_hostport
 from uosc.server import handle_osc
