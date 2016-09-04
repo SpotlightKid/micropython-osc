@@ -10,7 +10,7 @@ non-threaded client, with a few threading-related extensions:
     osc = ThreadedClient('192.168.0.42', 9001, start=True)
 
     # if the OSC message can not placed in the queue within timeout
-    # raises a QueueFull error
+    # raises a queue.Full error
     osc.send('/pi', 3.14159, timeout=1.0)
     # Stops and joins the thread and closes the client socket
     osc.close()
@@ -21,9 +21,9 @@ import logging
 import threading
 
 try:
-    from queue import Queue, Empty as QueueEmpty, Full as QueueFull
+    import queue
 except ImportError:
-    from Queue import Queue, Empty as QueueEmpty, Full as QueueFull
+    import Queue as queue
 
 from uosc.client import Client
 
@@ -37,7 +37,7 @@ class ThreadedClient(threading.Thread):
         self.host = host
         self.port = port
         self.timeout = timeout
-        self._q = Queue()
+        self._q = queue.Queue()
 
         if start:
             self.start()
@@ -66,7 +66,7 @@ class ThreadedClient(threading.Thread):
         while True:
             try:
                 self._q.get_nowait()
-            except QueueEmpty:
+            except queue.Empty:
                 break
 
         if self.is_alive():
