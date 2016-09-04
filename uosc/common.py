@@ -6,7 +6,10 @@ try:
 except ImportError:
     from utime import time
 
-from struct import pack
+try:
+    from ustruct import pack
+except ImportError:
+    from struct import pack
 
 try:
     const
@@ -16,8 +19,8 @@ except:
 # UNIX_EPOCH = datetime.date(*time.gmtime(0)[0:3])
 # NTP_EPOCH = datetime.date(1900, 1, 1)
 # NTP_DELTA = (UNIX_EPOCH - NTP_EPOCH).days * 24 * 3600
-NTP_DELTA = const(2208988800)
-ISIZE = const(4294967296)  # 2**32
+NTP_DELTA = 2208988800
+ISIZE = 4294967296  # 2**32
 
 
 class Impulse:

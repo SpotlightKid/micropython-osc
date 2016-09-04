@@ -3,10 +3,12 @@
 
 import socket
 
-from struct import pack
+try:
+    from ustruct import pack
+except ImportError:
+    from struct import pack
 
 from uosc.common import Bundle, to_frac
-from uosc.socketutil import pack_addr
 
 
 TYPE_MAP = {
@@ -23,10 +25,22 @@ TYPE_MAP = {
 
 if isinstance('', bytes):
     have_bytes = False
-    unicodetype = unicode
+    unicodetype = unicode  # noqa
 else:
     have_bytes = True
     unicodetype = str
+
+
+def pack_addr(addr):
+    """Pack a (host, port) tuple into the format expected by socket methods."""
+    if isinstance(addr, (bytes, bytearray)):
+        return addr
+
+    if len(addr) != 2:
+        raise NotImplementedError("Only IPv4/v6 supported")
+
+    addrinfo = socket.getaddrinfo(addr[0], addr[1])
+    return addrinfo[0][4]
 
 
 def pack_timetag(t):
@@ -38,7 +52,7 @@ def pack_string(s):
     """Pack a string into a binary OSC string."""
     s = s.encode('utf-8')
     assert all((i if have_bytes else ord(i)) < 128 for i in s), (
-           "OSC strings may only contain ASCII chars.")
+        "OSC strings may only contain ASCII chars.")
 
     slen = len(s)
     return s + b'\0' * (((slen + 4) & ~0x03) - slen)
