@@ -7,10 +7,15 @@
 import logging
 import socket
 
-from struct import unpack
+try:
+    from ustruct import unpack
+except ImportError:
+    from struct import unpack
 
 from uosc.common import Impulse, to_time
-from uosc.socketutil import get_hostport
+
+if __debug__:
+    from uosc.socketutil import get_hostport
 
 
 log = logging.getLogger("uosc.server")
@@ -25,12 +30,12 @@ def split_oscstr(msg, offset):
 def split_oscblob(msg, offset):
     start = offset + 4
     size = unpack('>I', msg[offset:start])[0]
-    return msg[start:start+size], (start + size + 4) & ~0x03
+    return msg[start:start + size], (start + size + 4) & ~0x03
 
 
 def parse_timetag(msg, offset):
     """Parse an OSC timetag from msg at offset."""
-    return to_time(unpack('>II', msg[offset:offset+4]))
+    return to_time(unpack('>II', msg[offset:offset + 4]))
 
 
 def parse_message(msg, strict=False):
@@ -57,7 +62,7 @@ def parse_message(msg, strict=False):
 
         if typetag in 'ifd':
             size = 8 if typetag == 'd' else 4
-            args.append(unpack('>' + typetag, msg[ofs:ofs+size])[0])
+            args.append(unpack('>' + typetag, msg[ofs:ofs + size])[0])
         elif typetag in 'sS':
             s, ofs = split_oscstr(msg, ofs)
             args.append(s)
@@ -66,16 +71,16 @@ def parse_message(msg, strict=False):
             args.append(s)
         elif typetag in 'rm':
             size = 4
-            args.append(unpack('BBBB', msg[ofs:ofs+size]))
+            args.append(unpack('BBBB', msg[ofs:ofs + size]))
         elif typetag == 'c':
             size = 4
-            args.append(chr(unpack('>I', msg[ofs:ofs+size])[0]))
+            args.append(chr(unpack('>I', msg[ofs:ofs + size])[0]))
         elif typetag == 'h':
             size = 8
-            args.append(unpack('>q', msg[ofs:ofs+size])[0])
+            args.append(unpack('>q', msg[ofs:ofs + size])[0])
         elif typetag == 't':
             size = 8
-            args.append(parse_timetag(msg, offset))
+            args.append(parse_timetag(msg, ofs))
         elif typetag in 'TFNI':
             args.append({'T': True, 'F': False, 'I': Impulse}.get(typetag))
         else:
@@ -103,8 +108,8 @@ def parse_bundle(bundle, strict=False):
         if ofs >= len(bundle):
             break
 
-        size = unpack('>I', bundle[ofs:ofs+4])[0]
-        element = bundle[ofs+4:ofs+4+size]
+        size = unpack('>I', bundle[ofs:ofs + 4])[0]
+        element = bundle[ofs + 4:ofs + 4 + size]
         ofs += size + 4
 
         if element.startswith('#bundle'):
@@ -124,7 +129,8 @@ def handle_osc(data, src, dispatch=None, strict=False):
             messages = parse_bundle(data, strict)
     except:
         if __debug__:
-            log.debug("Could not parse message from %s:%i.", *get_hostport(src))
+            log.debug("Could not parse message from %s:%i.",
+                      *get_hostport(src))
             log.debug("Data: %r", data)
         return
 
