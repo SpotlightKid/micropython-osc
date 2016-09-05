@@ -4,8 +4,8 @@ from uosc.client import Client
 
 
 UPDATE_DELAY = const(50)
-OSC_SERVER = '192.168.4.2'
-OSC_PORT = const(9001)
+OSC_SERVER = '192.168.42.151'
+OSC_PORT = const(12101)
 OSC_TOPIC = '/midi'
 MIDI_CC = const(7)
 
