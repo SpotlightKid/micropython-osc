@@ -1,7 +1,7 @@
 Micropython-OSC
 ===============
 
-Micropython-osc (aka `uosc`) is a minimal [Open Sound Control] (OSC) client and
+Micropython-osc (aka `uosc`) is a minimal [Open Sound Control] \(OSC) client and
 server library for [MicroPython] and CPython 2 or 3.
 
 
