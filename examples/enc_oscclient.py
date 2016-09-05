@@ -21,7 +21,7 @@ def main():
             if oldval != val:
                 oldval = val
 
-                osc.send(OSC_TOPIC, ('m', (0xB0, MIDI_CC, val, 0)))
+                osc.send(OSC_TOPIC, ('m', (0, 0xB0, MIDI_CC, val)))
 
             enc.cur_accel = max(0, enc.cur_accel - enc.accel)
             sleep_ms(UPDATE_DELAY)
