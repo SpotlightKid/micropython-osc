@@ -46,15 +46,15 @@ def parse_message(msg, strict=False):
         raise ValueError("OSC address pattern must start with a slash.")
 
     # type tag string must start with comma (ASCII 44)
-    if ofs < len(msg) and msg[ofs] == 44:
+    if ofs < len(msg) and msg[ofs:ofs+1] == b',':
         tags, ofs = split_oscstr(msg, ofs)
         tags = tags[1:]
     else:
-        msg = "Missing/invalid OSC type tag string."
+        errmsg = "Missing/invalid OSC type tag string."
         if strict:
-            raise ValueError(msg)
+            raise ValueError(errmsg)
         else:
-            log.warning(msg + ' Ignoring arguments.')
+            log.warning(errmsg + ' Ignoring arguments.')
             tags = ''
 
     for typetag in tags:
@@ -99,7 +99,7 @@ def parse_bundle(bundle, strict=False):
 
     """
     if not bundle.startswith(b'#bundle\0'):
-        raise TypeError("Bundle must start with '#bundle\\0'.")
+        raise TypeError("Bundle must start with b'#bundle\\0'.")
 
     ofs = 16
     timetag = to_time(*unpack('>II', bundle[8:ofs]))
@@ -112,7 +112,7 @@ def parse_bundle(bundle, strict=False):
         element = bundle[ofs + 4:ofs + 4 + size]
         ofs += size + 4
 
-        if element.startswith('#bundle'):
+        if element.startswith(b'#bundle'):
             for el in parse_bundle(element):
                 yield el
         else:

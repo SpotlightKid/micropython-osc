@@ -91,7 +91,8 @@ class TestParseMessage(unittest.TestCase):
 
         self.assertEqual(addr, '/big')
         self.assertEqual(tags, 'iisbff')
-        self.assertEqual((1000, -1, 'hello', bytes(range(6))), args[:-2])
+        self.assertEqual((1000, -1, 'hello', b'\x00\x01\x02\x03\x04\x05'),
+                         args[:-2])
         self.assertAlmostEqual(args[-2], 1.234)
         self.assertAlmostEqual(args[-1], 5.678)
 
