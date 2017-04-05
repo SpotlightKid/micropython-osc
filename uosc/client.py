@@ -11,24 +11,23 @@ except ImportError:
 from uosc.common import Bundle, to_frac
 
 
-TYPE_MAP = {
-    int: 'i',
-    float: 'f',
-    str: 's',
-    bytes: 'b',
-    bytearray: 'b',
-    True: 'T',
-    False: 'F',
-    None: 'N',
-}
-
-
 if isinstance('', bytes):
     have_bytes = False
     unicodetype = unicode  # noqa
 else:
     have_bytes = True
     unicodetype = str
+
+TYPE_MAP = {
+    int: 'i',
+    float: 'f',
+    bytes: 'b',
+    bytearray: 'b',
+    unicodetype: 's',
+    True: 'T',
+    False: 'F',
+    None: 'N',
+}
 
 
 def pack_addr(addr):
@@ -48,9 +47,10 @@ def pack_timetag(t):
     return pack('>II', *to_frac(t))
 
 
-def pack_string(s):
+def pack_string(s, encoding='utf-8'):
     """Pack a string into a binary OSC string."""
-    s = s.encode('utf-8')
+    if isinstance(s, unicodetype):
+        s = s.encode(encoding)
     assert all((i if have_bytes else ord(i)) < 128 for i in s), (
         "OSC strings may only contain ASCII chars.")
 
@@ -62,11 +62,11 @@ def pack_blob(b, encoding='utf-8'):
     """Pack a bytes, bytearray or tuple/list of ints into a binary OSC blob."""
     if isinstance(b, (tuple, list)):
         b = bytearray(b)
-    elif isinstance(b, str):
-        b = bytes(b, encoding)
+    elif isinstance(b, unicodetype):
+        b = b.encode(encoding)
 
     blen = len(b)
-    b = pack('>I', blen) + b
+    b = pack('>I', blen) + bytes(b)
     return b + b'\0' * (((blen + 3) & ~0x03) - blen)
 
 
@@ -82,6 +82,16 @@ def pack_bundle(bundle):
         data.append(pack('>I', len(msg)) + msg)
 
     return b'#bundle\0' + pack_timetag(bundle.timetag) + b''.join(data)
+
+
+def pack_midi(val):
+    assert not isinstance(val, unicodetype), (
+        "Value with tag 'm' or 'r' must be bytes, bytearray or a sequence of "
+        "ints, not %s" % unicodetype)
+    if not have_bytes and isinstance(val, str):
+        val = (ord(c) for c in val)
+
+    return pack('BBBB', *tuple(val))
 
 
 def create_message(address, *args):
@@ -134,7 +144,7 @@ def create_message(address, *args):
         elif typetag == 'b':
             data.append(pack_blob(arg))
         elif typetag in 'rm':
-            data.append(pack('BBBB', *tuple(arg)))
+            data.append(pack_midi(arg))
         elif typetag == 'c':
             data.append(pack('>I', ord(arg)))
         elif typetag == 'h':
