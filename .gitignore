@@ -3,3 +3,4 @@ dist/
 __pycache__/
 *.egg-info/
 *.py[cod]
+.cache
