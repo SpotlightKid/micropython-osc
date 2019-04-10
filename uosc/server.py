@@ -46,7 +46,7 @@ def parse_message(msg, strict=False):
         raise ValueError("OSC address pattern must start with a slash.")
 
     # type tag string must start with comma (ASCII 44)
-    if ofs < len(msg) and msg[ofs:ofs+1] == b',':
+    if ofs < len(msg) and msg[ofs:ofs + 1] == b',':
         tags, ofs = split_oscstr(msg, ofs)
         tags = tags[1:]
     else:
@@ -127,10 +127,10 @@ def handle_osc(data, src, dispatch=None, strict=False):
             messages = [(-1, parse_message(data, strict))]
         elif head == '#bundle':
             messages = parse_bundle(data, strict)
-    except:
+    except Exception as exc:
         if __debug__:
-            log.debug("Could not parse message from %s:%i.",
-                      *get_hostport(src))
+            log.debug("Could not parse message from %s:%i: %s",
+                      *get_hostport(src), exc)
             log.debug("Data: %r", data)
         return
 
