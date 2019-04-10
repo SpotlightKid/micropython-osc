@@ -1,17 +1,18 @@
 Micropython-OSC
 ===============
 
-Micropython-osc (aka `uosc`) is a minimal [Open Sound Control] \(OSC) client and
-server library for [MicroPython] and CPython 2 or 3.
+Micropython-osc (aka `uosc`) is a minimal [Open Sound Control] \(OSC) client
+and server library for [MicroPython] and CPython 2 or 3.
 
 
 Status / Supported Boards
 -------------------------
 
-It should work on the Unix, stmhal (Pyboard) and esp8266 port of MicroPython
-and under CPython 2.7 and 3.3+. Since OSC is a network-protocol using UDP or
-TCP as a transport, the main requirement is a working and compatible `socket`
-module. Currently this module only supports UDP as the transport.
+It should work on the Unix, stm32 (Pyboard) and esp8266 port of MicroPython
+and under CPython 2.7 and 3.3+. Since OSC is a protocol commonly using an IP
+network and UDP or TCP packets as a transport, the main requirement is a
+working and compatible `socket` module. Currently this module only supports UDP
+as the transport.
 
 The server code so far has only been tested under the Unix port and CPython 2
 and 3, but the client portion has been confirmed to work on a ESP-8266 board
