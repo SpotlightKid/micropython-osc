@@ -7,14 +7,10 @@ except ImportError:
     from utime import time
 
 try:
-    from ustruct import pack
+    from micropython import const
 except ImportError:
-    from struct import pack
+    const = lambda x: x  # noqa:E731
 
-try:
-    const
-except:
-    const = lambda x: x
 
 # UNIX_EPOCH = datetime.date(*time.gmtime(0)[0:3])
 # NTP_EPOCH = datetime.date(1900, 1, 1)
