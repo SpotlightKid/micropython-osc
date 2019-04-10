@@ -1,0 +1,2 @@
+import webrepl
+webrepl.start()
