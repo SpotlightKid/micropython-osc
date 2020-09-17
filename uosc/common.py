@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
+#
+#  uosc/common.py
+#
 """OSC message parsing and building functions."""
 
 try:
     from time import time
 except ImportError:
     from utime import time
-
-try:
-    from micropython import const
-except ImportError:
-    const = lambda x: x  # noqa:E731
 
 
 # UNIX_EPOCH = datetime.date(*time.gmtime(0)[0:3])

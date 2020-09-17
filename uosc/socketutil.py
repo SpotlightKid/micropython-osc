@@ -1,4 +1,10 @@
+# -*- coding: utf-8 -*-
+#
+#  uosc/socketutil.py
+#
+
 import socket
+
 
 INET_ADDRSTRLEN = 16
 INET6_ADDRSTRLEN = 46

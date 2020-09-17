@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+#
+#  uosc/client.py
+#
 """Simple OSC client."""
 
 import socket
