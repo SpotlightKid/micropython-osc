@@ -1,13 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Run an OSC server with asynchroneous I/O handling via the uasync framwork.
+
+Note: you can run this with the unix port from the root directory of the
+repo like this::
+
+    MICROPYPATH=".frozen:$(pwd)" micropython examples/async_server.py -v"
+    
+Then send OSC messages to localhost port 9001, for example with oscsend::
+
+    oscsend localhost 9001 /foo ifs $i 3.141 "hello world!"
+
 """
 
-import sys
 import logging
-import socket
 
-from uasyncio.core import IORead, coroutine, get_event_loop, sleep
+try:
+    import socket
+except ImportError:
+    import usocket as socket
+
+try:
+    import select
+except ImportError:
+    import uselect as select
+
+try:
+    import asyncio
+except ImportError:
+    import uasyncio as asyncio
 
 from uosc.socketutil import get_hostport
 from uosc.server import handle_osc
@@ -16,63 +37,98 @@ MAX_DGRAM_SIZE = 1472
 log = logging.getLogger("uosc.async_server")
 
 
-def run_server(host, port, client_coro, **params):
-    if __debug__: log.debug("run_server(%s, %s)", host, port)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setblocking(False)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind((host, port))
+class UDPServer:
+    def __init__(self, poll_timeout=1, max_packet_size=MAX_DGRAM_SIZE, poll_interval=0.0):
+        self.poll_timeout = poll_timeout
+        self.max_packet_size = max_packet_size
+        self.poll_interval = poll_interval
+    
+    def close(self):
+        self.sock.close()
 
-    try:
+    async def serve(self, host, port, cb, **params):
+        # bind instance attributes to local vars
+        interval = self.poll_interval
+        maxsize = self.max_packet_size
+        timeout = self.poll_timeout
+
+        if __debug__: log.debug("Starting UDP server @ (%s, %s)", host, port)
+        ai = socket.getaddrinfo(host, port)[0]  # blocking!
+        self.sock = s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setblocking(False)
+        s.bind(ai[-1])
+
+        p = select.poll()
+        p.register(s, select.POLLIN)
+
+        if __debug__: log.debug("Entering polling loop...")
         while True:
-            if __debug__: log.debug("run_server: Before IORead")
-            yield IORead(sock)
-            if __debug__: log.debug("run_server: Before recvfrom")
-            data, caddr = sock.recvfrom(MAX_DGRAM_SIZE)
-            if __debug__: log.debug("RECV %i bytes from %s:%s",
-                                    len(data), *get_hostport(caddr))
-            yield client_coro(data, caddr, **params)
-    finally:
-        sock.close()
+            try:
+                for res in p.ipoll(timeout):
+                    if res[1] & (select.POLLERR | select.POLLHUP):
+                        if __debug__: log.debug("UDPServer.serve: unexpected socket error.")
+                        break
+                    elif res[1] & select.POLLIN:
+                        if __debug__: log.debug("UDPServer.serve: Before recvfrom")
+                        buf, addr = res[0].recvfrom(maxsize)
+                        if __debug__: log.debug("RECV %i bytes from %s:%s", len(buf), *get_hostport(addr))
+                        asyncio.create_task(cb(res[0], buf, addr, **params))
+                
+                await asyncio.sleep(interval)
+            except asyncio.core.CancelledError:
+                if __debug__: log.debug("UDPServer.serve task cancelled.")
+                break
+
+        # Shutdown server
+        s.close()
         log.info("Bye!")
 
 
-@coroutine
-def serve(data, caddr, **params):
+async def serve_request(sock, data, caddr, **params):
     if __debug__: log.debug("Client request handler coroutine called.")
     handle_osc(data, caddr, **params)
     # simulate long running request handler
-    yield from sleep(1)
-    if __debug__: log.debug("Finished processing request,")
+    await asyncio.sleep(1)
+    if __debug__: log.debug("Finished processing request.")
 
 
 class Counter:
-    def __init__(self):
+    def __init__(self, debug=False):
         self.count = 0
+        self.debug = debug
 
     def __call__(self, t, msg):
         self.count += 1
-        print("OSC message from: udp://%s:%s" % get_hostport(msg[3]))
-        print("OSC address:", msg[0])
-        print("Type tags:", msg[1])
-        print("Arguments:", msg[2])
-        print()
+        if self.debug:
+            print("OSC message from: udp://%s:%s" % get_hostport(msg[3]))
+            print("OSC address:", msg[0])
+            print("Type tags:", msg[1])
+            print("Arguments:", msg[2])
+            print()
 
 
 if __name__ == '__main__':
+    import sys
     import time
+    
+    debug = '-v' in sys.argv[1:]
+
     logging.basicConfig(
-        level=logging.DEBUG if '-v' in sys.argv[1:] else logging.INFO)
-    loop = get_event_loop()
-    counter = Counter()
-    loop.call_soon(run_server("0.0.0.0", 9001, serve, dispatch=counter))
+        level=logging.DEBUG if debug else  logging.INFO)
+    
+    server = UDPServer(poll_timeout=50)
+    loop = asyncio.get_event_loop()
+    counter = Counter(debug=debug)
+    
     if __debug__: log.debug("Starting asyncio event loop")
     start = time.time()
+
     try:
-        loop.run_forever()
+        loop.run_until_complete(server.serve("0.0.0.0", 9001, serve_request, dispatch=counter))
     except KeyboardInterrupt:
         pass
     finally:
         loop.close()
         reqs = counter.count / (time.time() - start)
         print("Requests/second: %.2f" % reqs)
+        print("Requests total: %i" % counter.count)
