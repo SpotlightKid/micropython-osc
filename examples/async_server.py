@@ -2,9 +2,15 @@
 """Run an OSC server with asynchroneous I/O handling via the uasync framwork.
 
 Note: you can run this with the unix port from the root directory of the
-repo like this::
+repo like this:
 
-    MICROPYPATH=".frozen:$(pwd)" micropython examples/async_server.py -v"
+With micropython (unix port)
+
+    MICROPYPATH=".frozen:$(pwd)" micropython examples/async_server.py -v
+
+With CPython (or PyPy etc.)
+
+    PYTHONPATH="$(pwd)" python examples/async_server.py -v
     
 Then send OSC messages to localhost port 9001, for example with oscsend::
 
@@ -67,22 +73,23 @@ class UDPServer:
 
         p = select.poll()
         p.register(s, select.POLLIN)
+        poll = getattr(p, "ipoll", p.poll)
 
         if __debug__: log.debug("Entering polling loop...")
         while True:
             try:
-                for res in p.ipoll(timeout):
+                for res in poll(timeout):
                     if res[1] & (select.POLLERR | select.POLLHUP):
                         if __debug__: log.debug("UDPServer.serve: unexpected socket error.")
                         break
                     elif res[1] & select.POLLIN:
                         if __debug__: log.debug("UDPServer.serve: Before recvfrom")
-                        buf, addr = res[0].recvfrom(maxsize)
+                        buf, addr = s.recvfrom(maxsize)
                         if __debug__: log.debug("RECV %i bytes from %s:%s", len(buf), *get_hostport(addr))
                         asyncio.create_task(cb(res[0], buf, addr, **params))
                 
                 await asyncio.sleep(interval)
-            except asyncio.core.CancelledError:
+            except asyncio.CancelledError:
                 if __debug__: log.debug("UDPServer.serve task cancelled.")
                 break
 
@@ -124,18 +131,16 @@ if __name__ == '__main__':
         level=logging.DEBUG if debug else  logging.INFO)
     
     server = UDPServer(poll_timeout=50)
-    loop = asyncio.get_event_loop()
     counter = Counter(debug=debug)
     
     if __debug__: log.debug("Starting asyncio event loop")
     start = time.time()
 
     try:
-        loop.run_until_complete(server.serve(DEFAULT_ADDRESS, DEFAULT_PORT, serve_request, dispatch=counter))
+        asyncio.run(server.serve(DEFAULT_ADDRESS, DEFAULT_PORT, serve_request, dispatch=counter))
     except KeyboardInterrupt:
         pass
     finally:
-        loop.close()
         reqs = counter.count / (time.time() - start)
         print("Requests/second: %.2f" % reqs)
         print("Requests total: %i" % counter.count)
