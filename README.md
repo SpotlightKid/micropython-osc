@@ -36,5 +36,22 @@ whole package has a total LLOC of < 400).
     osc.send(b)
 
 
+Examples
+--------
+
+The [examples](./examples) directory contains some simple example scripts using
+this library to implement special OSC clients or simple OSC UDP servers.
+
+To use the server examples with the unix port of MicroPython, the following 
+required modules from the [micropython-lib] are included in this directory:
+
+* argparse
+* ffilib
+
+Either use the provided shell wrappers to run the server examples or install
+these two modules to `~/.micropython/lib`.
+
+
 [Open Sound Control]: http://opensoundcontrol.org
 [MicroPython]: http://micropython.org
+[micropython-lib]: https://github.com/micropython/micropython-lib

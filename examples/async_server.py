@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Run an OSC server with asynchroneous I/O handling via the uasync framwork.
 
 Note: you can run this with the unix port from the root directory of the
@@ -12,8 +11,6 @@ Then send OSC messages to localhost port 9001, for example with oscsend::
     oscsend localhost 9001 /foo ifs $i 3.141 "hello world!"
 
 """
-
-import logging
 
 try:
     import socket
@@ -30,11 +27,21 @@ try:
 except ImportError:
     import uasyncio as asyncio
 
-from uosc.socketutil import get_hostport
 from uosc.server import handle_osc
 
-MAX_DGRAM_SIZE = 1472
+if __debug__:
+    from socketutil import get_hostport
+
+try:
+    import logging
+except ImportError:
+    import uosc.fakelogging as logging
+
+
 log = logging.getLogger("uosc.async_server")
+DEFAULT_ADDRESS = '0.0.0.0'
+DEFAULT_PORT = 9001
+MAX_DGRAM_SIZE = 1472
 
 
 class UDPServer:
@@ -124,7 +131,7 @@ if __name__ == '__main__':
     start = time.time()
 
     try:
-        loop.run_until_complete(server.serve("0.0.0.0", 9001, serve_request, dispatch=counter))
+        loop.run_until_complete(server.serve(DEFAULT_ADDRESS, DEFAULT_PORT, serve_request, dispatch=counter))
     except KeyboardInterrupt:
         pass
     finally:

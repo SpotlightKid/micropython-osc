@@ -4,22 +4,20 @@
 #
 """A minimal OSC UDP server."""
 
-import logging
-import socket
-
 try:
     from ustruct import unpack
 except ImportError:
     from struct import unpack
 
-from uosc.common import Impulse, to_time
+try:
+    import logging
+except ImportError:
+    import uosc.fakelogging as logging
 
-if __debug__:
-    from uosc.socketutil import get_hostport
+from uosc.common import Impulse, to_time
 
 
 log = logging.getLogger("uosc.server")
-MAX_DGRAM_SIZE = 1472
 
 
 def split_oscstr(msg, offset):
@@ -146,21 +144,3 @@ def handle_osc(data, src, dispatch=None, strict=False):
     except Exception as exc:
         log.error("Exception in OSC handler: %s", exc)
 
-
-def run_server(saddr, port, handler=handle_osc):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    if __debug__: log.debug("Created OSC UDP server socket.")
-
-    sock.bind((saddr, port))
-    log.info("Listening for OSC messages on %s:%i.", saddr, port)
-
-    try:
-        while True:
-            data, caddr = sock.recvfrom(MAX_DGRAM_SIZE)
-            if __debug__: log.debug("RECV %i bytes from %s:%s",
-                                    len(data), *get_hostport(caddr))
-            handler(data, caddr)
-    finally:
-        sock.close()
-        log.info("Bye!")

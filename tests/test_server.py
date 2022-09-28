@@ -148,12 +148,12 @@ class TestParseBundle(unittest.TestCase):
     def test_parse_bundle_elements(self):
         # parsing flat bundle
         elements = list(parse_bundle(self.data1))
-        self.assertEqual(elements[0][0], self.timetag)
+        self.assertAlmostEqual(elements[0][0], self.timetag, places=5)
         self.assertEqual(elements[0][1], ('/test1', 'i', (42,)))
-        self.assertEqual(elements[1][0], self.timetag)
+        self.assertAlmostEqual(elements[1][0], self.timetag, places=5)
         self.assertEqual(elements[1][1][:2], ('/test2', 'f'))
-        self.assertEqual(elements[2][0], self.timetag)
-        self.assertAlmostEqual(elements[1][1][2][0], 3.141)
+        self.assertAlmostEqual(elements[2][0], self.timetag, places=5)
+        self.assertAlmostEqual(elements[1][1][2][0], 3.141, places=3)
         self.assertEqual(elements[2][1], ('/test3', 's', ('hello',)))
 
 
