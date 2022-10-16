@@ -10,9 +10,9 @@ except ImportError:
     from utime import time
 
 
-# UNIX_EPOCH = datetime.date(*time.gmtime(0)[0:3])
-# NTP_EPOCH = datetime.date(1900, 1, 1)
-# NTP_DELTA = (UNIX_EPOCH - NTP_EPOCH).days * 24 * 3600
+# UNIX_EPOCH = datetime.datetime.utcfromtimestamp(0)
+# NTP_EPOCH = datetime.datetime(1900, 1, 1, 0, 0, 0)
+# NTP_DELTA = int((UNIX_EPOCH - NTP_EPOCH).total_seconds())
 NTP_DELTA = 2208988800
 ISIZE = 4294967296  # 2**32
 
