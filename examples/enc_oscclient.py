@@ -1,5 +1,7 @@
 from machine import Pin
 from time import sleep_ms
+
+# https://github.com/SpotlightKid/micropython-stm-lib/tree/master/encoder
 from encoder import Encoder
 from uosc.client import Client
 
