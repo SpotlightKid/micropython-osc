@@ -4,7 +4,13 @@
 #
 """Simple OSC client."""
 
-import socket
+try:
+    import socketpool
+    import wifi
+
+    socket = socketpool.SocketPool(wifi.radio)
+except ImportError:
+    import socket
 
 try:
     from ustruct import pack
