@@ -1,8 +1,12 @@
-Micropython-OSC
+CircuitPython-OSC
 ===============
 
-Micropython-osc (aka `uosc`) is a minimal [Open Sound Control] \(OSC) client
-and server library for [MicroPython] and CPython 2 or 3.
+circuitpython-osc (aka `uosc`) is a minimal [Open Sound Control] \(OSC) client
+and server library for [MicroPython], [CircuitPython] and CPython 2 or 3.
+
+This fork changes the 7 lines required to support CircuitPython.  
+Upstream refused to support it despite the work being done for them.  
+This fork will remain up-to-date with upstream.
 
 
 Status / Supported Boards
@@ -55,3 +59,4 @@ these two modules to `~/.micropython/lib`.
 [Open Sound Control]: http://opensoundcontrol.org
 [MicroPython]: http://micropython.org
 [micropython-lib]: https://github.com/micropython/micropython-lib
+[CircuitPython]: https://circuitpython.org
