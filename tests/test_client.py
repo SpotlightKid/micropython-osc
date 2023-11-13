@@ -110,7 +110,7 @@ class TestCreateMessage(unittest.TestCase):
         self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
                           ('m', (0, 0xB0, 32, 0)))
 
-    def test_create_message_midi_fromtuple(self):
+    def test_create_message_midi_fromlist(self):
         self.assertMessage(b'/midi\0\0\0,m\0\0\0\xB0 \0', '/midi',
                           ('m', [0, 0xB0, 32, 0]))
 
