@@ -14,7 +14,7 @@ try:
 except ImportError:
     import uosc.fakelogging as logging
 
-from uosc.common import Impulse, to_time
+from uosc.common import Impulse, TimetagNow, to_time
 
 
 log = logging.getLogger("uosc.server")
@@ -33,7 +33,10 @@ def split_oscblob(msg, offset):
 
 def parse_timetag(msg, offset):
     """Parse an OSC timetag from msg at offset."""
-    return to_time(unpack('>II', msg[offset:offset + 4]))
+    if msg[offset + 7] == 1:
+        return TimetagNow
+    else:
+        return to_time(*unpack('>II', msg[offset:offset + 8]))
 
 
 def parse_message(msg, strict=False):
