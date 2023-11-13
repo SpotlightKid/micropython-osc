@@ -127,8 +127,7 @@ def handle_osc(data, src, dispatch=None, strict=False):
             messages = parse_bundle(data, strict)
     except Exception as exc:
         if __debug__:
-            log.debug("Could not parse message from %s:%i: %s",
-                      *get_hostport(src), exc)
+            log.debug("Could not parse message from %r: %s", src, exc)
             log.debug("Data: %r", data)
         return
 
@@ -143,4 +142,3 @@ def handle_osc(data, src, dispatch=None, strict=False):
                 dispatch(timetag, (oscaddr, tags, args, src))
     except Exception as exc:
         log.error("Exception in OSC handler: %s", exc)
-

@@ -14,9 +14,10 @@ def run_loadtest(c):
         c.send('/foo', 42, 23)
         e = time.time()
         if e - s > 5.0:
-            print("{} req/s".format(nreq/5.0))
+            print("{} req/s".format(nreq / 5.0))
             nreq = 0
             s = time.time()
+
 
 if __name__ == '__main__':
     c = Client(9001)
@@ -24,4 +25,3 @@ if __name__ == '__main__':
         run_loadtest(c)
     except KeyboardInterrupt:
         pass
-

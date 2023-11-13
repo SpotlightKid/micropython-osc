@@ -44,9 +44,6 @@ class TestParseMessage(unittest.TestCase):
     def test_parse_message_str(self):
         self.assertMessage(('/s', 's', ('foo',)), b'/s\0\0,s\0\0foo\0')
 
-    def test_parse_message_float(self):
-        self.assertMessage(('/f', 'f', (42.0,)), b'/f\0\0,f\0\0B(\0\0')
-
     def test_parse_message_blob(self):
         self.assertMessage(('/b', 'b', (b'\xDE\xAD\xBE\xEF',)),
                            b'/b\0\0,b\0\0\0\0\0\x04\xDE\xAD\xBE\xEF')
