@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import time
 import unittest
 
-from uosc.server import Impulse, parse_bundle, parse_message
+from struct import pack
+
+from uosc.common import Impulse, ISIZE, NTP_DELTA, TimetagNow
+from uosc.server import parse_bundle, parse_message
 
 
 typegen = type((lambda: (yield))())
@@ -92,6 +96,15 @@ class TestParseMessage(unittest.TestCase):
                          args[:-2])
         self.assertAlmostEqual(args[-2], 1.234)
         self.assertAlmostEqual(args[-1], 5.678)
+
+    def test_parse_message_timetag(self):
+        ntpnow = time.time() + NTP_DELTA
+        sec = int(ntpnow)
+        tt = pack(">II", sec, int(abs(ntpnow - sec) * ISIZE))
+        self.assertMessage(('/tt', 't', (ntpnow,)), b'/tt\0,t\0\0' + tt)
+
+    def test_parse_message_timetag_now(self):
+        self.assertMessage(('/tt', 't', (TimetagNow,)), b'/tt\0,t\0\0\0\0\0\0\0\0\x00\x01')
 
 
 class TestParseBundle(unittest.TestCase):

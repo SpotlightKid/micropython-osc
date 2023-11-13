@@ -11,7 +11,7 @@ try:
 except ImportError:
     from struct import pack
 
-from uosc.common import Bundle, to_frac
+from uosc.common import Bundle, Impulse, TimetagNow, to_frac
 
 
 if isinstance('', bytes):
@@ -22,14 +22,16 @@ else:
     unicodetype = str
 
 TYPE_MAP = {
-    int: 'i',
-    float: 'f',
-    bytes: 'b',
     bytearray: 'b',
-    unicodetype: 's',
-    True: 'T',
+    bytes: 'b',
+    float: 'f',
+    int: 'i',
     False: 'F',
+    Impulse: 'I',
     None: 'N',
+    TimetagNow: 't',
+    True: 'T',
+    unicodetype: 's',
 }
 
 
@@ -112,6 +114,8 @@ def create_message(address, *args):
     * ``None``: N
     * ``True``: T
     * ``False``: F
+    * ``uosc.common.Impulse``: I
+    * ``uosc.common.TimetagNow``: t
 
     If you want to encode a Python object to another OSC type, you have to pass
     a ``(typetag, data)`` tuple, where ``data`` must be of the appropriate type
@@ -123,7 +127,8 @@ def create_message(address, *args):
     * I: ``None`` (unused)
     * m: ``tuple / list`` of 4 ``int``s or ``bytes / bytearray`` of length 4
     * r: same as 'm'
-    * t: OSC timetag as as ``int / float`` seconds since the NTP epoch
+    * t: OSC timetag as as ``int / float`` seconds since the NTP epoch or the
+        ``uosc.common.TimetagNow`` constant
     * S: ``str``
 
     """
@@ -153,7 +158,10 @@ def create_message(address, *args):
         elif typetag == 'h':
             data.append(pack('>q', arg))
         elif typetag == 't':
-            data.append(pack_timetag(arg))
+            if arg is TimetagNow:
+                data.append(pack('>Q', 1))
+            else:
+                data.append(pack_timetag(arg))
         elif typetag not in 'IFNT':
             raise TypeError("Argument of type '%s' not supported." % type_)
 

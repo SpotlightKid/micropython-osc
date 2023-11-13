@@ -5,7 +5,7 @@ import time
 import unittest
 
 from uosc.client import Bundle, create_message, pack_bundle
-from uosc.common import NTP_DELTA
+from uosc.common import Impulse, TimetagNow, NTP_DELTA
 
 try:
     from struct import error as StructError
@@ -140,6 +140,27 @@ class TestCreateMessage(unittest.TestCase):
             b'\0\0\0\0\0\0\x06\0\x01\x02\x03\x04\x05\0\0'
             b'?\x9d\xf3\xb6@\xb5\xb2-',
             '/big', 1000, -1, u'hello', bytearray(range(6)), 1.234, 5.678)
+
+    def test_create_message_timetag(self):
+        ntptime = 3657147741.655295
+        self.assertMessage(b'/tt\0,t\0\0\xd9\xfb\xa5]\xa7\xc1h\x00', '/tt',
+                          ('t', ntptime))
+
+    def test_create_message_timetag_int(self):
+        ntptime = 3657147741
+        self.assertMessage(b'/tt\0,t\0\0\xd9\xfb\xa5]\x00\x00\x00\x00', '/tt',
+                          ('t', ntptime))
+
+    def test_create_message_timetag_now(self):
+        self.assertMessage(b'/tt\0,t\0\0\0\0\0\0\0\0\0\x01', '/tt',
+                          ('t', TimetagNow))
+        self.assertMessage(b'/tt\0,t\0\0\0\0\0\0\0\0\0\x01', '/tt',
+                           TimetagNow)
+
+    def test_create_message_impulse(self):
+        self.assertMessage(b'/inf\0\0\0\0,I\0\0', '/inf', ('I', Impulse))
+        self.assertMessage(b'/inf\0\0\0\0,I\0\0', '/inf', ('I', None))
+        self.assertMessage(b'/inf\0\0\0\0,I\0\0', '/inf', Impulse)
 
 
 class TestBundle(unittest.TestCase):
