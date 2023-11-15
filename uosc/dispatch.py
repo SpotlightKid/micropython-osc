@@ -5,9 +5,9 @@ Implements the following parts of the OSC 1.0 specification:
 * OSC Address Spaces and OSC Addresses
 * OSC Message Dispatching and Pattern Matching
 
-See the ``_demo()`` function below for a usage example.
+See the unit tests in ``tests/ttest_dispatch.py`` for API usage examples.
 
-**Note:** Path-traversing wildcards (``//``) as specified by the OSC 1.1
+**Note:** Path-traversing wildcards (``//``) as envisioned by the OSC 1.1
 "specification" paper are **not** supported.
 
 """
@@ -46,6 +46,11 @@ def expand_curly_braces(s, offset=0):
 
 
 class OSCAddressContainer(dict):
+    """
+    Branch node in the OSC Address Space tree containing OSC Methods or
+    sub-branches.
+
+    """
     def __init__(self, name, parent=None):
         super().__init__()
         self.name = name
@@ -139,6 +144,13 @@ class OSCAddressContainer(dict):
 
 
 class OSCMethod:
+    """
+    A leaf node in the OSC Address Space tree wrapping the callable for an OSC
+    Method.
+
+    """
+    __slots__ = ("name", "callable_", "typetags", "parent")
+
     def __init__(self, name, callable_, typetags=TYPETAGS_ANY, parent=None):
         self.name = name
         self.callable_ = callable_
@@ -155,28 +167,25 @@ class OSCMethod:
 _root = None
 
 
-def get_default_root():
+def get_global_root():
+    """Return global OSC Address Space root OSCAdressContainer node instance.
+
+    The root node is created on demand, when this function is first called and
+    the tree will initially be unpopulated, i.e. have no branches or leaves.
+
+    The global root node, as the name says, is a module global, so changes to
+    the tree it is the root of, will be visible via all references to it
+    retrieved via this function in the same program.
+
+    To create a non-global OSC Adress Space tree, just create a new
+    ``OSCAddressContainer`` instance like so:
+
+        myroot = OSCAddressContainer(name="/")
+
+    """
     global _root
+
     if _root is None:
         _root = OSCAddressContainer("/")
+
     return _root
-
-
-def _demo():
-    def fn(*args):
-        pass
-
-    import sys
-
-    root = get_default_root()
-    root.register_method(fn, "/ops/math/add", "ii")
-    root.register_method(fn, "/ops/math/sum", TYPETAGS_ANY)
-    root.register_method(fn, "/ops/string/add", "ii")
-    root.register_method(fn, "/ops/array/add", "ii")
-    root.register_method(fn, "/ops/math/sub", "ii")
-
-    print(root.match(*sys.argv[1:]))
-
-
-if __name__ == "__main__":
-    _demo()
