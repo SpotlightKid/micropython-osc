@@ -85,7 +85,8 @@ class UDPServer:
                     elif res[1] & select.POLLIN:
                         if __debug__: log.debug("UDPServer.serve: Before recvfrom")
                         buf, addr = s.recvfrom(maxsize)
-                        if __debug__: log.debug("RECV %i bytes from %s:%s", len(buf), *get_hostport(addr))
+                        if __debug__: log.debug("RECV %i bytes from %s:%s", len(buf),
+                                                *get_hostport(addr))
                         asyncio.create_task(cb(res[0], buf, addr, **params))
 
                 await asyncio.sleep(interval)
@@ -128,7 +129,7 @@ def main():
     debug = '-v' in sys.argv[1:]
 
     logging.basicConfig(
-        level=logging.DEBUG if debug else  logging.INFO)
+        level=logging.DEBUG if debug else logging.INFO)
 
     server = UDPServer(poll_timeout=50)
     counter = Counter(debug=debug)
