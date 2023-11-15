@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+"""Unit tests for the uosc.server module."""
 
 import time
 import unittest

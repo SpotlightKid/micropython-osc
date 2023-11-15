@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Unit tests for the uosc.client module."""
 
 import sys
 import time
