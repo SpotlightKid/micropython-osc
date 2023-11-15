@@ -6,12 +6,12 @@ repo like this:
 
 With micropython (unix port)
 
-    MICROPYPATH=".frozen:$(pwd)" micropython examples/async_server.py -v
+    MICROPYPATH=".frozen:$(pwd).$(pwd)/examples" micropython uosc/tools/async_server.py -v
 
 With CPython (or PyPy etc.)
 
-    PYTHONPATH="$(pwd)" python examples/async_server.py -v
-    
+    PYTHONPATH="$(pwd)" python -m uosc.tools.async_server.py -v
+
 Then send OSC messages to localhost port 9001, for example with oscsend::
 
     oscsend localhost 9001 /foo ifs $i 3.141 "hello world!"
@@ -36,12 +36,12 @@ except ImportError:
 from uosc.server import handle_osc
 
 if __debug__:
-    from socketutil import get_hostport
+    from uosc.compat.socketutil import get_hostport
 
 try:
     import logging
 except ImportError:
-    import uosc.fakelogging as logging
+    import uosc.compat.fakelogging as logging
 
 
 log = logging.getLogger("uosc.async_server")
@@ -55,7 +55,7 @@ class UDPServer:
         self.poll_timeout = poll_timeout
         self.max_packet_size = max_packet_size
         self.poll_interval = poll_interval
-    
+
     def close(self):
         self.sock.close()
 
@@ -87,7 +87,7 @@ class UDPServer:
                         buf, addr = s.recvfrom(maxsize)
                         if __debug__: log.debug("RECV %i bytes from %s:%s", len(buf), *get_hostport(addr))
                         asyncio.create_task(cb(res[0], buf, addr, **params))
-                
+
                 await asyncio.sleep(interval)
             except asyncio.CancelledError:
                 if __debug__: log.debug("UDPServer.serve task cancelled.")
@@ -121,18 +121,18 @@ class Counter:
             print()
 
 
-if __name__ == '__main__':
+def main():
     import sys
     import time
-    
+
     debug = '-v' in sys.argv[1:]
 
     logging.basicConfig(
         level=logging.DEBUG if debug else  logging.INFO)
-    
+
     server = UDPServer(poll_timeout=50)
     counter = Counter(debug=debug)
-    
+
     if __debug__: log.debug("Starting asyncio event loop")
     start = time.time()
 
@@ -144,3 +144,8 @@ if __name__ == '__main__':
         reqs = counter.count / (time.time() - start)
         print("Requests/second: %.2f" % reqs)
         print("Requests total: %i" % counter.count)
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main() or 0)
