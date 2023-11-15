@@ -12,7 +12,7 @@ except ImportError:
 try:
     import logging
 except ImportError:
-    import uosc.fakelogging as logging
+    import uosc.compat.fakelogging as logging
 
 from uosc.common import Impulse, TimetagNow, to_time
 

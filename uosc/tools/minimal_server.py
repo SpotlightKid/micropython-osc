@@ -9,14 +9,14 @@ except ImportError:
 try:
     import logging
 except ImportError:
-    import uosc.fakelogging as logging
+    import uosc.compat.fakelogging as logging
 
 if __debug__:
-    from socketutil import get_hostport
-    
+    from uosc.compat.socketutil import get_hostport
+
 from uosc.server import handle_osc
 
-    
+
 log = logging.getLogger("uosc.minimal_server")
 DEFAULT_ADDRESS = '0.0.0.0'
 DEFAULT_PORT = 9001

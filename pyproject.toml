@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.hatch.version]
+path = "uosc/version.py"
+pattern = "version = \"(?P<version>.*?)\""
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["uosc"]
+
+
+[tool.isort]
+line_length = 99
+profile = "black"
+
+
+[tool.black]
+line-length = 99
+
+
+[project]
+dynamic = ["version"]
+name = "micropython-osc"
+authors = [
+  { name="Christopher Arndt", email="info@chrisarndt.de" },
+]
+description = "A minimal OSC client and server library for MicroPython and CPython"
+readme = "README.md"
+keywords = [
+    "osc",
+    "opensoundcontrol",
+    "network",
+    "multimedia",
+    "protocol",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: MicroPython",
+    "Topic :: Communications",
+    "Topic :: Home Automation",
+    "Topic :: Internet",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking",
+]
+requires-python = ">=3.8"
+
+[project.license]
+file = "LICENSE.md"
+
+[project.urls]
+"Homepage" = "https://github.com/SpotlightKid/micropython-osc"
+"Bug Tracker" = "https://github.com/SpotlightKid/micropython-osc/issues"
+
+
+#[project.scripts]
+#uosc-udp-server = "uosc.tools.async_server:main"
